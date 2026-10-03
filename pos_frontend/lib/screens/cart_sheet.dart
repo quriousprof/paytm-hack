@@ -5,12 +5,14 @@ const _kBlue = Color(0xFF002970);
 class CartItem {
   final String name;
   final String emoji;
+  final String unit;
   final double price;
   final int qty;
 
   const CartItem({
     required this.name,
     required this.emoji,
+    required this.unit,
     required this.price,
     required this.qty,
   });
@@ -20,18 +22,15 @@ class CartItem {
 
 class CartSheet extends StatelessWidget {
   final List<CartItem> items;
-  final VoidCallback onMoveToPOS;
+  final VoidCallback onPlaceOrder;
 
   const CartSheet({
     super.key,
     required this.items,
-    required this.onMoveToPOS,
+    required this.onPlaceOrder,
   });
 
-  double get _itemTotal =>
-      items.fold(0.0, (sum, i) => sum + i.subtotal);
-  static const _handlingFee = 5.0;
-  double get _grandTotal => _itemTotal + _handlingFee;
+  double get _total => items.fold(0.0, (sum, i) => sum + i.subtotal);
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +51,7 @@ class CartSheet extends StatelessWidget {
           Flexible(child: _buildItemList()),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           _buildBillSummary(),
-          _buildMoveToPos(context),
+          _buildPlaceOrderButton(context),
         ],
       ),
     );
@@ -77,10 +76,7 @@ class CartSheet extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
       child: Row(
         children: [
-          const Text(
-            '🛒',
-            style: TextStyle(fontSize: 22),
-          ),
+          const Text('🛒', style: TextStyle(fontSize: 22)),
           const SizedBox(width: 10),
           const Text(
             'Your Cart',
@@ -92,8 +88,7 @@ class CartSheet extends StatelessWidget {
           ),
           const Spacer(),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: _kBlue.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
@@ -117,9 +112,8 @@ class CartSheet extends StatelessWidget {
       shrinkWrap: true,
       padding: const EdgeInsets.symmetric(vertical: 4),
       itemCount: items.length,
-      separatorBuilder: (context, i) =>
-          const Divider(height: 1, indent: 20, endIndent: 20,
-              color: Color(0xFFF5F5F5)),
+      separatorBuilder: (context, i) => const Divider(
+          height: 1, indent: 20, endIndent: 20, color: Color(0xFFF5F5F5)),
       itemBuilder: (_, i) => _buildItemRow(items[i]),
     );
   }
@@ -129,7 +123,6 @@ class CartSheet extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
-          // Emoji tile
           Container(
             width: 44,
             height: 44,
@@ -138,11 +131,9 @@ class CartSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: Text(item.emoji,
-                style: const TextStyle(fontSize: 22)),
+            child: Text(item.emoji, style: const TextStyle(fontSize: 22)),
           ),
           const SizedBox(width: 12),
-          // Name + qty breakdown
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,14 +148,12 @@ class CartSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '${item.qty} × ₹${item.price.toInt()}',
-                  style: TextStyle(
-                      fontSize: 12, color: Colors.grey[500]),
+                  '${item.qty} × ${item.unit}  ·  ₹${item.price.toInt()} each',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
           ),
-          // Subtotal
           Text(
             '₹${item.subtotal.toInt()}',
             style: const TextStyle(
@@ -194,64 +183,37 @@ class CartSheet extends StatelessWidget {
               letterSpacing: 0.3,
             ),
           ),
-          const SizedBox(height: 10),
-          _billRow('Item Total', '₹${_itemTotal.toInt()}'),
-          const SizedBox(height: 6),
-          _billRow('Handling Fee', '₹${_handlingFee.toInt()}',
-              valueColor: Colors.grey[600]),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Divider(height: 1, color: Color(0xFFEEEEEE)),
           ),
-          _billRow(
-            'Total',
-            '₹${_grandTotal.toInt()}',
-            labelStyle: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A1A1A),
-            ),
-            valueStyle: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: _kBlue,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              Text(
+                '₹${_total.toInt()}',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: _kBlue,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _billRow(
-    String label,
-    String value, {
-    TextStyle? labelStyle,
-    TextStyle? valueStyle,
-    Color? valueColor,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: labelStyle ??
-              const TextStyle(
-                  fontSize: 13, color: Color(0xFF666666)),
-        ),
-        Text(
-          value,
-          style: valueStyle ??
-              TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: valueColor ?? const Color(0xFF1A1A1A),
-              ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMoveToPos(BuildContext context) {
+  Widget _buildPlaceOrderButton(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
           16, 12, 16, 16 + MediaQuery.of(context).padding.bottom),
@@ -259,7 +221,7 @@ class CartSheet extends StatelessWidget {
         width: double.infinity,
         height: 54,
         child: ElevatedButton(
-          onPressed: onMoveToPOS,
+          onPressed: onPlaceOrder,
           style: ElevatedButton.styleFrom(
             backgroundColor: _kBlue,
             shape: RoundedRectangleBorder(
@@ -270,7 +232,7 @@ class CartSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'Move to POS',
+                'Place Order',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -279,14 +241,14 @@ class CartSheet extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  '₹${_grandTotal.toInt()}',
+                  '₹${_total.toInt()}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -295,8 +257,7 @@ class CartSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              const Icon(Icons.arrow_forward,
-                  color: Colors.white, size: 18),
+              const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
             ],
           ),
         ),

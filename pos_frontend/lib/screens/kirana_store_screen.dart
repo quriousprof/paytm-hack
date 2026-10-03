@@ -64,6 +64,7 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
       .map((p) => CartItem(
             name: p.name,
             emoji: p.emoji,
+            unit: p.unit,
             price: p.price,
             qty: _cart[p.id]!,
           ))
@@ -76,16 +77,169 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => CartSheet(
         items: _cartItems,
-        onMoveToPOS: () {
-          Navigator.pop(context); // close the sheet
+        onPlaceOrder: () {
+          Navigator.pop(context);
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  PaymentMethodScreen(amount: _cartTotal + 5),
+              builder: (_) => PaymentMethodScreen(amount: _cartTotal),
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showQuantityPicker(_Product product) {
+    int qty = _cart[product.id] ?? 1;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: EdgeInsets.fromLTRB(
+              24, 16, 24, 24 + MediaQuery.of(ctx).padding.bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Product info
+              Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: product.bgColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(product.emoji,
+                        style: const TextStyle(fontSize: 30)),
+                  ),
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '₹${product.price.toInt()} per ${product.unit}',
+                        style: TextStyle(
+                            fontSize: 13, color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              // Quantity stepper
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _qtyBtn(
+                    Icons.remove,
+                    qty > 1
+                        ? () => setSheet(() => qty--)
+                        : null,
+                  ),
+                  const SizedBox(width: 28),
+                  Column(
+                    children: [
+                      Text(
+                        '$qty',
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: _kBlue,
+                        ),
+                      ),
+                      Text(
+                        product.unit,
+                        style: TextStyle(
+                            fontSize: 13, color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 28),
+                  _qtyBtn(
+                    Icons.add,
+                    () => setSheet(() => qty++),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              // Add to cart button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() => _cart[product.id] = qty);
+                    Navigator.pop(ctx);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _kBlue,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Add $qty ${product.unit} to Cart  ·  ₹${(product.price * qty).toInt()}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _qtyBtn(IconData icon, VoidCallback? onTap) {
+    final enabled = onTap != null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: enabled
+              ? _kBlue.withValues(alpha: 0.1)
+              : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: Icon(icon,
+            size: 22,
+            color: enabled ? _kBlue : Colors.grey[400]),
       ),
     );
   }
@@ -330,7 +484,7 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
               const Spacer(),
               qty == 0
                   ? GestureDetector(
-                      onTap: () => _increment(p.id),
+                      onTap: () => _showQuantityPicker(p),
                       child: Container(
                         width: 32,
                         height: 32,
