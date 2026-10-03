@@ -78,22 +78,93 @@ class _PosHomeScreenState extends State<PosHomeScreen>
           onPressed: () => Scaffold.of(ctx).openDrawer(),
         ),
       ),
-      title: const Text(
-        'Dashboard',
-        style: TextStyle(
-            color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Dashboard',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold),
+          ),
+          Text(
+            'Shree Ram Kirana Store',
+            style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.65), fontSize: 11),
+          ),
+        ],
       ),
       actions: [
-        IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search, color: Colors.white)),
-        IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.account_circle_outlined, color: Colors.white)),
-        IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white)),
+        // Notifications with ICE alert badge
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            IconButton(
+              onPressed: () => _showNotificationsSheet(context),
+              icon: const Icon(Icons.notifications_outlined,
+                  color: Colors.white, size: 24),
+            ),
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEF4444),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: const Text('3',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+        // Store avatar
+        GestureDetector(
+          onTap: () => _showStoreSheet(context),
+          child: Container(
+            margin: const EdgeInsets.only(right: 14, left: 4),
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+            ),
+            alignment: Alignment.center,
+            child: const Text('SR',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold)),
+          ),
+        ),
       ],
+    );
+  }
+
+  void _showNotificationsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _NotificationsSheet(),
+    );
+  }
+
+  void _showStoreSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _StoreProfileSheet(),
     );
   }
 
@@ -726,4 +797,353 @@ class _DonutChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
+}
+
+// ── Notifications sheet ───────────────────────────────────────────────────────
+
+class _NotificationsSheet extends StatelessWidget {
+  const _NotificationsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Handle
+          Center(
+            child: Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Text('Alerts',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A1A))),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text('3 critical',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold)),
+              ),
+              const Spacer(),
+              Text('Just now',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[400])),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _alertSection(context, 'Critical — stockout imminent',
+              const Color(0xFFEF4444), const Color(0xFFFFEBEE), [
+            _AlertItem('🧅', 'Onions', '2.4 kg left · stockout in < 1 day',
+                const Color(0xFFEF4444)),
+            _AlertItem('🍅', 'Tomatoes', '1.8 kg left · stockout in < 1 day',
+                const Color(0xFFEF4444)),
+            _AlertItem('🥛', 'Milk', '4 L left · stockout in ~18 hrs',
+                const Color(0xFFEF4444)),
+          ]),
+          const SizedBox(height: 12),
+          _alertSection(context, 'Low stock — reorder soon',
+              const Color(0xFFE65100), const Color(0xFFFFF3E0), [
+            _AlertItem('🥔', 'Potatoes', '6.5 kg · 2.3 days left',
+                const Color(0xFFE65100)),
+            _AlertItem('🍞', 'Brown Bread', '5 pkt · 2.5 days left',
+                const Color(0xFFE65100)),
+            _AlertItem('🥚', 'Eggs', '2 trays · 2.2 days left',
+                const Color(0xFFE65100)),
+            _AlertItem('🍶', 'Curd', '3 kg · 2.7 days left',
+                const Color(0xFFE65100)),
+          ]),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                // Navigate to ICE tab via the parent's tab controller is
+                // not trivially accessible here; user can tap the ICE tab
+              },
+              icon: const Icon(Icons.inventory_2_outlined,
+                  size: 16, color: Colors.white),
+              label: const Text('Open ICE Dashboard',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kBlue,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _alertSection(
+    BuildContext context,
+    String title,
+    Color titleColor,
+    Color bgColor,
+    List<_AlertItem> items,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: titleColor)),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: items.asMap().entries.map((e) {
+              final item = e.value;
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    child: Row(
+                      children: [
+                        Text(item.emoji,
+                            style: const TextStyle(fontSize: 18)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(item.name,
+                                  style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1A1A1A))),
+                              Text(item.detail,
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey[600])),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: item.color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (e.key < items.length - 1)
+                    Divider(
+                        height: 1,
+                        color: item.color.withValues(alpha: 0.15),
+                        indent: 40),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AlertItem {
+  final String emoji;
+  final String name;
+  final String detail;
+  final Color color;
+  const _AlertItem(this.emoji, this.name, this.detail, this.color);
+}
+
+// ── Store profile sheet ───────────────────────────────────────────────────────
+
+class _StoreProfileSheet extends StatelessWidget {
+  const _StoreProfileSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            width: 36, height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Avatar
+          Container(
+            width: 64, height: 64,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF002970), Color(0xFF1A56DB)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const Text('SR',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 12),
+          const Text('Shree Ram Kirana Store',
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1A1A))),
+          const SizedBox(height: 4),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text('Active Merchant',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF16A34A))),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FA),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFEEEEEE)),
+            ),
+            child: Column(
+              children: [
+                _profileRow(Icons.person_outline, 'Owner',
+                    'Ramnath Sharma'),
+                _divider(),
+                _profileRow(Icons.payments_outlined, 'UPI ID',
+                    'shreeram@paytm'),
+                _divider(),
+                _profileRow(Icons.location_on_outlined, 'Address',
+                    '14, SV Road, Andheri West\nMumbai – 400 058'),
+                _divider(),
+                _profileRow(Icons.point_of_sale_outlined, 'Terminal ID',
+                    'POS-MUM-1042'),
+                _divider(),
+                _profileRow(Icons.calendar_today_outlined, 'Member Since',
+                    'January 2022'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.edit_outlined, size: 15),
+                  label: const Text('Edit Profile'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _kBlue,
+                    side: const BorderSide(color: _kBlue),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.logout, size: 15, color: Colors.white),
+                  label: const Text('Logout',
+                      style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEF4444),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _profileRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: _kBlue),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: const TextStyle(
+                      fontSize: 11, color: Color(0xFF888888))),
+              const SizedBox(height: 2),
+              Text(value,
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A1A))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider() =>
+      const Divider(height: 1, color: Color(0xFFEEEEEE), indent: 44);
 }
