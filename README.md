@@ -1,4 +1,4 @@
-# Paytm Hack — Digital Kirana Storefront
+# Vyaapari — Digital Kirana Storefront
 
 A mini app built on top of Paytm POS that turns any kirana (local grocery) store into a digitally-managed business — with voice-powered billing, an AI-driven inventory engine, and a customer-facing storefront, all within the Paytm ecosystem.
 
