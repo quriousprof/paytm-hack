@@ -9,8 +9,8 @@ const _kBlue = Color(0xFF002970);
 
 const _storeName = 'Shree Ram Kirana Store';
 const _storeTagline = 'Fresh • Local • Trusted';
-const _storeAddress = '12, MG Road, Koramangala';
-const _storeCity = 'Bengaluru – 560 034';
+const _storeAddress = '14, SV Road, Andheri West';
+const _storeCity = 'Mumbai – 400 058';
 const _storePhone = '+91 98765 43210';
 const _storeGST = 'GSTIN: 29AABCU9603R1ZX';
 
@@ -327,9 +327,6 @@ class ReceiptScreen extends StatelessWidget {
           if (items != null && items!.isNotEmpty) ...[
             _totalRow('Subtotal',
                 '₹${items!.fold(0.0, (s, i) => s + i.subtotal).toInt()}'),
-            const SizedBox(height: 6),
-            _totalRow('Tax (0%)', '₹0',
-                valueColor: Colors.grey),
             const SizedBox(height: 10),
             const Divider(height: 1, color: Color(0xFFEEEEEE)),
             const SizedBox(height: 10),
