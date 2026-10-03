@@ -206,6 +206,8 @@ class IceScreen extends StatelessWidget {
           const SizedBox(height: 20),
           _buildInsightsRow(),
           const SizedBox(height: 24),
+          _buildAllocationsSection(),
+          const SizedBox(height: 24),
           if (critical.isNotEmpty) ...[
             _sectionHeader('Critical', _kCritical, critical.length,
                 Icons.warning_amber_rounded),
@@ -503,7 +505,7 @@ class IceScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              _daysLeftBadge(item, statusColor),
+              _qtyLeftBadge(item, statusColor),
             ],
           ),
           const SizedBox(height: 12),
@@ -587,37 +589,154 @@ class IceScreen extends StatelessWidget {
     );
   }
 
-  Widget _daysLeftBadge(_IceItem item, Color color) {
-    if (item.status == _StockStatus.healthy) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: _kHealthy.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          '${item.daysLeft.round()}d',
-          style: const TextStyle(
-              fontSize: 12, fontWeight: FontWeight.bold, color: _kHealthy),
-        ),
-      );
-    }
-    final hours = item.daysLeft < 1
-        ? '${(item.daysLeft * 24).round()} hrs'
-        : '${item.daysLeft.toStringAsFixed(1)}d';
+  Widget _qtyLeftBadge(_IceItem item, Color color) {
+    final val = item.stockEst % 1 == 0
+        ? item.stockEst.toInt().toString()
+        : item.stockEst.toStringAsFixed(1);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: item.status != _StockStatus.healthy
+            ? Border.all(color: color.withValues(alpha: 0.3))
+            : null,
       ),
       child: Column(
         children: [
-          Text(hours,
+          Text(val,
               style: TextStyle(
                   fontSize: 13, fontWeight: FontWeight.bold, color: color)),
-          Text('left', style: TextStyle(fontSize: 9, color: color)),
+          Text(item.unit, style: TextStyle(fontSize: 9, color: color)),
+        ],
+      ),
+    );
+  }
+
+  // ── Calculated Allocations ─────────────────────────────────────────────────
+
+  Widget _buildAllocationsSection() {
+    final entries = _kItems.map((item) {
+      final demand7 = item.velocity * 7 * (1 + item.trendPct / 100);
+      final alloc = (demand7 - item.stockEst).clamp(0.0, double.infinity);
+      return (item: item, alloc: alloc);
+    }).where((e) => e.alloc > 0).toList()
+      ..sort((a, b) => b.alloc.compareTo(a.alloc));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text('Calculated Allocations',
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A1A))),
+            const Spacer(),
+            Text('7-day forecast',
+                style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Container(
+          height: 224,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFEEEEEE)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: ListView.separated(
+              padding: EdgeInsets.zero,
+              itemCount: entries.length,
+              separatorBuilder: (context, _) => const Divider(
+                  height: 1, color: Color(0xFFF0F2F5), indent: 58),
+              itemBuilder: (_, i) =>
+                  _buildAllocationRow(entries[i].item, entries[i].alloc),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAllocationRow(_IceItem item, double alloc) {
+    final statusColor = item.status == _StockStatus.critical
+        ? _kCritical
+        : item.status == _StockStatus.low
+            ? _kLow
+            : _kHealthy;
+    final up = item.trendPct > 0;
+    final trendColor = up ? _kCritical : _kHealthy;
+    final allocStr = alloc % 1 < 0.1
+        ? alloc.round().toString()
+        : alloc.toStringAsFixed(1);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: item.bgColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Text(item.emoji, style: const TextStyle(fontSize: 18)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.name,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A))),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(
+                      up ? Icons.trending_up : Icons.trending_down,
+                      size: 11,
+                      color: trendColor,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${up ? '+' : ''}${item.trendPct.toStringAsFixed(0)}% demand',
+                      style: TextStyle(fontSize: 11, color: trendColor),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$allocStr ${item.unit}',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor),
+              ),
+              Text('allocate',
+                  style: TextStyle(fontSize: 10, color: Colors.grey[400])),
+            ],
+          ),
         ],
       ),
     );
