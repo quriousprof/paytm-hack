@@ -207,7 +207,7 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
                     elevation: 0,
                   ),
                   child: Text(
-                    'Add $qty ${product.unit} to Cart  ·  ₹${(product.price * qty).toInt()}',
+                    'Add ${_qtyLabel(qty, product.unit)} to Cart  ·  ₹${(product.price * qty).toInt()}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 15,
@@ -242,6 +242,16 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
             color: enabled ? _kBlue : Colors.grey[400]),
       ),
     );
+  }
+
+  // "1 kg" × 2 → "2 kg" | "500 ml" × 2 → "2 × 500 ml"
+  String _qtyLabel(int qty, String unit) {
+    final parts = unit.trim().split(' ');
+    if (parts.length == 2) {
+      final base = double.tryParse(parts[0]) ?? 1;
+      if (base == 1) return '$qty ${parts[1]}';
+    }
+    return '$qty × $unit';
   }
 
   @override
@@ -579,7 +589,7 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  '$_cartCount ${_cartCount == 1 ? 'item' : 'items'}',
+                  '${_cart.length} ${_cart.length == 1 ? 'item' : 'items'}',
                   style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
