@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'cart_sheet.dart';
 import 'payment_method_screen.dart';
+import '../services/voice_cart_service.dart';
+import '../widgets/voice_listening_sheet.dart';
 
 const _kBlue = Color(0xFF002970);
 
@@ -91,6 +94,77 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
         },
       ),
     );
+  }
+
+  // ── Voice cart ─────────────────────────────────────────────────────────────
+
+  Future<void> _showVoiceSheet() async {
+    final status = await Permission.microphone.request();
+    if (!status.isGranted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Microphone permission denied'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => VoiceListeningSheet(
+        onItemsConfirmed: _applyVoiceItems,
+      ),
+    );
+  }
+
+  void _applyVoiceItems(List<VoiceCartItem> items) {
+    final added = <String>[];
+    final notFound = <String>[];
+
+    for (final item in items) {
+      final product = _fuzzyMatch(item.name);
+      if (product != null) {
+        final qty = item.qty.round().clamp(1, 99);
+        setState(() => _cart[product.id] = (_cart[product.id] ?? 0) + qty);
+        added.add('${product.name} ×$qty');
+      } else {
+        notFound.add(item.name);
+      }
+    }
+
+    final parts = [
+      if (added.isNotEmpty) 'Added: ${added.join(', ')}',
+      if (notFound.isNotEmpty) 'Not found: ${notFound.join(', ')}',
+    ];
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(parts.isEmpty ? 'No items recognised' : parts.join(' · ')),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 3),
+    ));
+  }
+
+  _Product? _fuzzyMatch(String name) {
+    final q = name.toLowerCase().trim();
+    // 1. exact name
+    for (final p in _kProducts) {
+      if (p.name.toLowerCase() == q) return p;
+    }
+    // 2. id
+    for (final p in _kProducts) {
+      if (p.id == q) return p;
+    }
+    // 3. one contains the other (handles "onions" ↔ "Onions", "potato" ↔ "Potatoes")
+    for (final p in _kProducts) {
+      final pn = p.name.toLowerCase();
+      if (pn.contains(q) || q.contains(pn)) return p;
+    }
+    return null;
   }
 
   void _showQuantityPicker(_Product product) {
@@ -356,13 +430,7 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
               const Icon(Icons.search, color: Colors.grey, size: 20),
           suffixIcon: IconButton(
             icon: const Icon(Icons.mic, color: _kBlue, size: 20),
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Voice input coming soon'),
-                duration: Duration(seconds: 1),
-                behavior: SnackBarBehavior.floating,
-              ),
-            ),
+            onPressed: _showVoiceSheet,
           ),
           border: InputBorder.none,
           contentPadding:
