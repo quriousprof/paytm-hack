@@ -115,6 +115,18 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
     Navigator.pop(context);
   }
 
+  Future<void> _tryAgain() async {
+    setState(() {
+      _state = _VoiceState.listening;
+      _transcript = '';
+      _rawItems = [];
+      _preview = [];
+      _normalizedAmp = 0.1;
+    });
+    _wavePhaseController.repeat();
+    await _startSession();
+  }
+
   @override
   void dispose() {
     _ampTimer?.cancel();
@@ -277,51 +289,42 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
         _transcriptBubble(),
         const SizedBox(height: 20),
 
-        if (_preview.isEmpty) ...[
-          _emptyState(),
+        if (_preview.isEmpty || matched.isEmpty) ...[
+          _parseFailedState(),
+          const SizedBox(height: 20),
+          _tryAgainButton(),
           const SizedBox(height: 8),
-          Center(
-            child: TextButton(
-              onPressed: _cancel,
-              child:
-                  Text('Cancel', style: TextStyle(color: Colors.grey[500])),
-            ),
-          ),
+          _cancelButton(),
         ] else ...[
           // Header count
           _sectionLabel(
-            matched.isEmpty
-                ? 'No items matched'
-                : '${matched.length} ${matched.length == 1 ? 'item' : 'items'} found'
-                    '${unmatched.isNotEmpty ? '  ·  ${unmatched.length} not in catalog' : ''}',
+            '${matched.length} ${matched.length == 1 ? 'item' : 'items'} found'
+            '${unmatched.isNotEmpty ? '  ·  ${unmatched.length} not in catalog' : ''}',
           ),
           const SizedBox(height: 10),
 
           // Matched items — cart-sheet row style
-          if (matched.isNotEmpty) ...[
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFEEEEEE)),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                children: [
-                  for (int i = 0; i < matched.length; i++) ...[
-                    _matchedRow(matched[i]),
-                    if (i < matched.length - 1)
-                      const Divider(
-                          height: 1,
-                          indent: 20,
-                          endIndent: 20,
-                          color: Color(0xFFF5F5F5)),
-                  ],
-                ],
-              ),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFFEEEEEE)),
+              borderRadius: BorderRadius.circular(14),
             ),
-            const SizedBox(height: 12),
-            // Bill summary
-            _billSummary(matched.length, total),
-          ],
+            child: Column(
+              children: [
+                for (int i = 0; i < matched.length; i++) ...[
+                  _matchedRow(matched[i]),
+                  if (i < matched.length - 1)
+                    const Divider(
+                        height: 1,
+                        indent: 20,
+                        endIndent: 20,
+                        color: Color(0xFFF5F5F5)),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          _billSummary(matched.length, total),
 
           // Unmatched items — dimmed
           if (unmatched.isNotEmpty) ...[
@@ -332,18 +335,9 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
           ],
 
           const SizedBox(height: 20),
-
-          // CTA
-          if (matched.isNotEmpty)
-            _addToCartButton(matched.length, total)
-          else
-            _cancelButton(),
-
-          if (matched.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _cancelButton(),
-          ],
-
+          _addToCartButton(matched.length, total),
+          const SizedBox(height: 8),
+          _cancelButton(),
           const SizedBox(height: 4),
         ],
       ],
@@ -561,18 +555,51 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
         ),
       );
 
-  Widget _emptyState() => Center(
+  Widget _parseFailedState() => Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             children: [
-              Icon(Icons.search_off_rounded,
-                  size: 44, color: Colors.grey[300]),
-              const SizedBox(height: 8),
-              Text('No items recognised',
-                  style:
-                      TextStyle(color: Colors.grey[400], fontSize: 14)),
+              Icon(Icons.mic_off_rounded, size: 44, color: Colors.grey[300]),
+              const SizedBox(height: 12),
+              const Text(
+                'Could not parse your list',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'None of the items matched our catalog.\nPlease try again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.grey[500], height: 1.5),
+              ),
             ],
+          ),
+        ),
+      );
+
+  Widget _tryAgainButton() => SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: ElevatedButton.icon(
+          onPressed: _tryAgain,
+          icon: const Icon(Icons.mic, color: Colors.white, size: 18),
+          label: const Text(
+            'Try Again',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kBlue,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14)),
+            elevation: 0,
           ),
         ),
       );
