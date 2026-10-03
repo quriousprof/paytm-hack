@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'store_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,14 +16,25 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
-        child: _currentIndex == 0 ? _buildHomeBody() : _buildPlaceholder(),
+        child: _buildBody(),
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
+  Widget _buildBody() {
+    switch (_currentIndex) {
+      case 0:
+        return _buildHomeBody();
+      case 3:
+        return const StoreScreen();
+      default:
+        return _buildPlaceholder();
+    }
+  }
+
   Widget _buildPlaceholder() {
-    final labels = ['', 'Scan & Pay', 'Passbook', 'Inbox', 'Profile'];
+    final labels = ['', 'Scan & Pay', 'Passbook', '', 'Profile'];
     return Center(
       child: Text(
         labels[_currentIndex],
@@ -322,9 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Kirana Storefront mini app entry
           GestureDetector(
-            onTap: () {
-              // TODO: Navigate to the kirana storefront mini app
-            },
+            onTap: () => setState(() => _currentIndex = 3),
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -497,7 +507,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet), label: 'Passbook'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline), label: 'Inbox'),
+              icon: Icon(Icons.storefront), label: 'Store'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
         ],
       ),
