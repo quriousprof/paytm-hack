@@ -72,6 +72,8 @@ def _transcribe(audio_bytes: bytes, filename: str) -> str:
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp.write(audio_bytes)
         tmp_path = tmp.name
+
+    print(f"[STT] Sending {len(audio_bytes)} bytes to Sarvam STT...")
     try:
         with open(tmp_path, "rb") as f:
             response = client.speech_to_text.transcribe(
@@ -87,12 +89,15 @@ def _transcribe(audio_bytes: bytes, filename: str) -> str:
     transcript = response.transcript
     if not transcript or not transcript.strip():
         raise HTTPException(status_code=422, detail="STT returned an empty transcript")
+
+    print(f"[STT] Transcript: {transcript!r}")
     return transcript
 
 
 def _extract_items(transcript: str) -> list[CartItem]:
     """Send the transcript to Sarvam LLM and return parsed CartItems."""
     client = get_sarvam_client()
+    print(f"[LLM] Parsing cart items from: {transcript!r}")
     try:
         response = client.chat.completions(
             model="sarvam-m",
@@ -113,11 +118,17 @@ def _extract_items(transcript: str) -> list[CartItem]:
             status_code=502, detail=f"LLM returned invalid JSON: {raw}"
         ) from exc
 
-    return [CartItem(**item) for item in data.get("items", [])]
+    items = [CartItem(**item) for item in data.get("items", [])]
+    print(f"[LLM] Parsed {len(items)} item(s):")
+    for item in items:
+        print(f"      → {item.name}  qty={item.qty}  unit={item.unit}")
+    return items
 
 
 def parse_voice_cart(audio_bytes: bytes, filename: str) -> tuple[str, list[CartItem]]:
     """Full pipeline: audio → transcript → cart items."""
+    print(f"[VOICE-CART] Starting pipeline for {filename!r}")
     transcript = _transcribe(audio_bytes, filename)
     items = _extract_items(transcript)
+    print(f"[VOICE-CART] Done — transcript={transcript!r}, items={len(items)}")
     return transcript, items
