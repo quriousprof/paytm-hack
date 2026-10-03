@@ -349,7 +349,7 @@ class IceScreen extends StatelessWidget {
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A))),
         ),
         SizedBox(
-          height: 118,
+          height: 130,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: _kInsights.length,
