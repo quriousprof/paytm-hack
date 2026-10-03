@@ -750,7 +750,7 @@ const _kProducts = <_Product>[
   _Product(id: 'carrot', name: 'Carrots', unit: '500 g', price: 30, emoji: '🥕', bgColor: Color(0xFFFFF3E0), category: 'Vegetables'),
   _Product(id: 'capsicum', name: 'Capsicum', unit: '250 g', price: 40, emoji: '🫑', bgColor: Color(0xFFE8F5E9), category: 'Vegetables'),
   // Dairy
-  _Product(id: 'milk', name: 'Milk', unit: '500 ml', price: 30, emoji: '🥛', bgColor: Color(0xFFE3F2FD), category: 'Dairy'),
+  _Product(id: 'milk', name: 'Milk', unit: '1 l', price: 60, emoji: '🥛', bgColor: Color(0xFFE3F2FD), category: 'Dairy'),
   _Product(id: 'butter', name: 'Butter', unit: '100 g', price: 55, emoji: '🧈', bgColor: Color(0xFFFFFDE7), category: 'Dairy'),
   _Product(id: 'curd', name: 'Curd', unit: '400 g', price: 40, emoji: '🍶', bgColor: Color(0xFFE0F2F1), category: 'Dairy'),
   _Product(id: 'cheese', name: 'Cheese Slice', unit: '200 g', price: 90, emoji: '🧀', bgColor: Color(0xFFFFF9C4), category: 'Dairy'),
