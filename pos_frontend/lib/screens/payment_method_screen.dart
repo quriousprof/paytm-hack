@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
+import 'cart_sheet.dart';
 import 'payment_processing_screen.dart';
 
 const _kBlue = Color(0xFF002970);
 
 class PaymentMethodScreen extends StatelessWidget {
   final double amount;
+  final List<CartItem>? items;
 
-  const PaymentMethodScreen({super.key, required this.amount});
+  const PaymentMethodScreen({
+    super.key,
+    required this.amount,
+    this.items,
+  });
 
   void _selectMethod(BuildContext context, PaymentMethod method) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            PaymentProcessingScreen(amount: amount, method: method),
+        builder: (_) => PaymentProcessingScreen(
+          amount: amount,
+          method: method,
+          items: items,
+        ),
       ),
     );
   }

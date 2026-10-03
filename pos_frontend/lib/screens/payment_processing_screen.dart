@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'cart_sheet.dart';
 import 'payment_method_screen.dart';
 import 'pos_home_screen.dart';
+import 'receipt_screen.dart';
 
 const _kBlue = Color(0xFF002970);
 
 class PaymentProcessingScreen extends StatefulWidget {
   final double amount;
   final PaymentMethod method;
+  final List<CartItem>? items;
 
   const PaymentProcessingScreen({
     super.key,
     required this.amount,
     required this.method,
+    this.items,
   });
 
   @override
@@ -28,10 +32,15 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
   late Animation<double> _pulseAnimation;
   late Animation<double> _successScale;
   Timer? _simulationTimer;
+  late final String _txnId;
+  late final DateTime _timestamp;
 
   @override
   void initState() {
     super.initState();
+    _txnId = 'PAY${DateTime.now().millisecondsSinceEpoch % 1000000}';
+    _timestamp = DateTime.now();
+
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -67,6 +76,21 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
     super.dispose();
   }
 
+  void _openReceipt() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReceiptScreen(
+          items: widget.items,
+          total: widget.amount,
+          method: widget.method,
+          txnId: _txnId,
+          timestamp: _timestamp,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,7 +107,6 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
     final cfg = _methodConfig(widget.method);
     return Column(
       children: [
-        // Header
         Container(
           color: _kBlue,
           padding:
@@ -230,8 +253,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
               ),
               const SizedBox(height: 32),
               Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 32),
+                margin: const EdgeInsets.symmetric(horizontal: 32),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -246,19 +268,16 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                 ),
                 child: Column(
                   children: [
-                    _receiptRow('Amount',
+                    _summaryRow('Amount',
                         '₹ ${widget.amount.toStringAsFixed(2)}',
                         isAmount: true),
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    _receiptRow('Method', _methodLabel(widget.method)),
+                    _summaryRow('Method', _methodLabel(widget.method)),
                     const SizedBox(height: 8),
-                    _receiptRow('Status', 'Success',
+                    _summaryRow('Status', 'Success',
                         valueColor: const Color(0xFF00897B)),
                     const SizedBox(height: 8),
-                    _receiptRow(
-                      'Txn ID',
-                      'PAY${DateTime.now().millisecondsSinceEpoch % 1000000}',
-                    ),
+                    _summaryRow('Txn ID', _txnId),
                   ],
                 ),
               ),
@@ -298,17 +317,21 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
               SizedBox(
                 width: double.infinity,
                 height: 48,
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey[300]!),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text(
+                child: OutlinedButton.icon(
+                  onPressed: _openReceipt,
+                  icon: const Icon(Icons.receipt_long_outlined,
+                      size: 18, color: _kBlue),
+                  label: const Text(
                     'Print Receipt',
                     style: TextStyle(
-                        color: Color(0xFF555555), fontSize: 15),
+                        color: _kBlue,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: _kBlue),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -319,7 +342,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
     );
   }
 
-  Widget _receiptRow(String label, String value,
+  Widget _summaryRow(String label, String value,
       {bool isAmount = false, Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

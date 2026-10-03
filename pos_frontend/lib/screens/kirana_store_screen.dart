@@ -82,7 +82,10 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => PaymentMethodScreen(amount: _cartTotal),
+              builder: (_) => PaymentMethodScreen(
+                amount: _cartTotal,
+                items: _cartItems,
+              ),
             ),
           );
         },
