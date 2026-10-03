@@ -240,301 +240,67 @@ class _PosHomeScreenState extends State<PosHomeScreen>
   }
 
   Widget _buildKiranaCard() {
-    return GestureDetector(
+    return _FeatureCard(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const KiranaStoreScreen()),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Left panel
-            Container(
-              width: 110,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF002970), Color(0xFF1A56DB)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('🛒', style: TextStyle(fontSize: 30)),
-                  SizedBox(height: 8),
-                  Text(
-                    'Kirana',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Store',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            // Right panel — stats
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 14),
-                child: Column(
-                  children: [
-                    _kiranaStatRow("Today's Sales", '₹4,230',
-                        color: const Color(0xFF1A56DB)),
-                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
-                    _kiranaStatRow('Items Sold', '47'),
-                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
-                    _kiranaStatRow('Active Orders', '8'),
-                  ],
-                ),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(right: 10),
-              child: Icon(Icons.chevron_right, color: Colors.grey, size: 20),
-            ),
-          ],
-        ),
-      ),
+      gradientColors: const [Color(0xFF002970), Color(0xFF1565C0)],
+      accentColor: const Color(0xFF1A56DB),
+      emoji: '🛒',
+      title: 'Kirana Store',
+      subtitle: 'Digital storefront',
+      badge: '8 active',
+      badgeColor: const Color(0xFF1A56DB),
+      stats: const [
+        _CardStat(value: '₹4,230', label: "Today's Sales",
+            color: Color(0xFF1A56DB)),
+        _CardStat(value: '47', label: 'Items Sold'),
+        _CardStat(value: '8', label: 'Orders', color: Color(0xFF16A34A)),
+      ],
     );
   }
 
   Widget _buildIceCard() {
-    return GestureDetector(
+    return _FeatureCard(
       onTap: () => _tabController.animateTo(3),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Left panel
-            Container(
-              width: 110,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF0D47A1), Color(0xFF00ACC1)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('📦', style: TextStyle(fontSize: 30)),
-                  SizedBox(height: 8),
-                  Text(
-                    'ICE',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Inventory',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            // Right panel — stats
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 14),
-                child: Column(
-                  children: [
-                    _iceStatRow('Health Score', '74%',
-                        color: const Color(0xFF00ACC1)),
-                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
-                    _iceStatRow('Critical Items', '3',
-                        color: const Color(0xFFD32F2F)),
-                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
-                    _iceStatRow('Reorder Value', '₹3,180'),
-                  ],
-                ),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(right: 10),
-              child: Icon(Icons.chevron_right, color: Colors.grey, size: 20),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _iceStatRow(String label, String value, {Color? color}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color ?? const Color(0xFF1A1A1A),
-          ),
-        ),
+      gradientColors: const [Color(0xFF0D47A1), Color(0xFF00838F)],
+      accentColor: const Color(0xFF00ACC1),
+      emoji: '📦',
+      title: 'ICE Engine',
+      subtitle: 'AI-powered inventory',
+      badge: 'AI',
+      badgeColor: const Color(0xFF00ACC1),
+      stats: const [
+        _CardStat(value: '74%', label: 'Health Score',
+            color: Color(0xFF00ACC1)),
+        _CardStat(value: '3', label: 'Critical',
+            color: Color(0xFFD32F2F)),
+        _CardStat(value: '₹3,180', label: 'Reorder'),
       ],
     );
   }
 
   Widget _buildInvestCard() {
-    return GestureDetector(
+    return _FeatureCard(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const InvestScreen()),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Left panel
-            Container(
-              width: 110,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFB45309), Color(0xFFD97706), Color(0xFFFBBF24)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('💰', style: TextStyle(fontSize: 30)),
-                  SizedBox(height: 8),
-                  Text(
-                    'Invest',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Paytm Gold',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            // Right panel — stats
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 14),
-                child: Column(
-                  children: [
-                    _investStatRow("Today's Profit", '₹761',
-                        color: const Color(0xFFB45309)),
-                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
-                    _investStatRow('Portfolio', '₹9,142',
-                        color: const Color(0xFF16A34A)),
-                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
-                    _investStatRow('Returns', '+11.5%',
-                        color: const Color(0xFF16A34A)),
-                  ],
-                ),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(right: 10),
-              child: Icon(Icons.chevron_right, color: Colors.grey, size: 20),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _investStatRow(String label, String value, {Color? color}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color ?? const Color(0xFF1A1A1A),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _kiranaStatRow(String label, String value, {Color? color}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color ?? const Color(0xFF1A1A1A),
-          ),
-        ),
+      gradientColors: const [Color(0xFFB45309), Color(0xFFD97706)],
+      accentColor: const Color(0xFFD97706),
+      emoji: '🥇',
+      title: 'Invest Now',
+      subtitle: 'Paytm Gold',
+      badge: '+11.5%',
+      badgeColor: const Color(0xFF16A34A),
+      stats: const [
+        _CardStat(value: '₹761', label: "Today's Profit",
+            color: Color(0xFFB45309)),
+        _CardStat(value: '₹9,142', label: 'Portfolio',
+            color: Color(0xFF16A34A)),
+        _CardStat(value: '+11.5%', label: 'Returns',
+            color: Color(0xFF16A34A)),
       ],
     );
   }
@@ -738,6 +504,179 @@ class _PosHomeScreenState extends State<PosHomeScreen>
     return Center(
       child: Text(label,
           style: const TextStyle(color: Colors.grey, fontSize: 16)),
+    );
+  }
+}
+
+// ── Feature cards ─────────────────────────────────────────────────────────────
+
+class _CardStat {
+  final String value;
+  final String label;
+  final Color? color;
+  const _CardStat({required this.value, required this.label, this.color});
+}
+
+class _FeatureCard extends StatelessWidget {
+  final VoidCallback onTap;
+  final List<Color> gradientColors;
+  final Color accentColor;
+  final String emoji;
+  final String title;
+  final String subtitle;
+  final String badge;
+  final Color badgeColor;
+  final List<_CardStat> stats;
+
+  const _FeatureCard({
+    required this.onTap,
+    required this.gradientColors,
+    required this.accentColor,
+    required this.emoji,
+    required this.title,
+    required this.subtitle,
+    required this.badge,
+    required this.badgeColor,
+    required this.stats,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: 0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // ── Header ──────────────────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.06),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(
+                children: [
+                  // Icon badge
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: gradientColors,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: gradientColors.last.withValues(alpha: 0.35),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(emoji,
+                        style: const TextStyle(fontSize: 22)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title,
+                            style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A1A1A))),
+                        const SizedBox(height: 1),
+                        Text(subtitle,
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.grey[500])),
+                      ],
+                    ),
+                  ),
+                  // Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: badgeColor.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: badgeColor.withValues(alpha: 0.25)),
+                    ),
+                    child: Text(badge,
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: badgeColor)),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: 13, color: Colors.grey[400]),
+                ],
+              ),
+            ),
+            // ── Stats row ────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  vertical: 14, horizontal: 6),
+              child: Row(
+                children: [
+                  for (int i = 0; i < stats.length; i++) ...[
+                    Expanded(child: _statCol(stats[i])),
+                    if (i < stats.length - 1)
+                      Container(
+                        width: 1,
+                        height: 32,
+                        color: const Color(0xFFEEEEEE),
+                      ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _statCol(_CardStat stat) {
+    return Column(
+      children: [
+        Text(
+          stat.value,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: stat.color ?? const Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          stat.label,
+          style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }
