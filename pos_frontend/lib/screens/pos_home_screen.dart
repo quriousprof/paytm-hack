@@ -66,19 +66,16 @@ class _PosHomeScreenState extends State<PosHomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset('assets/paytm-logo.jpg',
-                width: 30, height: 30, fit: BoxFit.cover),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'Paytm POS',
+          Image.asset('assets/paytm-logo.jpg',
+              width: 80, fit: BoxFit.contain),
+          const SizedBox(width: 8),
+          Text(
+            'POS',
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+              letterSpacing: 2,
             ),
           ),
           const Spacer(),

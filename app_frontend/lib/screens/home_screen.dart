@@ -61,23 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              'assets/paytm-logo.jpg',
-              width: 32,
-              height: 32,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'Paytm',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+          Image.asset(
+            'assets/paytm-logo.jpg',
+            width: 96,
+            fit: BoxFit.contain,
           ),
           const Spacer(),
           _topBarIcon(Icons.qr_code_scanner, onTap: () {}),
