@@ -195,8 +195,23 @@ class IceScreen extends StatelessWidget {
     final healthy = _kItems.where((i) => i.status == _StockStatus.healthy).toList();
     final healthScore = (healthy.length / _kItems.length * 100).round();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F2F5),
+      appBar: AppBar(
+        backgroundColor: _kBlue,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'ICE — Inventory Engine',
+          style: TextStyle(
+              color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600),
+        ),
+      ),
+      body: SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -229,6 +244,7 @@ class IceScreen extends StatelessWidget {
           ],
         ],
       ),
+    ),
     );
   }
 
