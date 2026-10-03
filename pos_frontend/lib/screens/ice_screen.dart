@@ -193,8 +193,6 @@ class IceScreen extends StatelessWidget {
     final critical = _kItems.where((i) => i.status == _StockStatus.critical).toList();
     final low = _kItems.where((i) => i.status == _StockStatus.low).toList();
     final healthy = _kItems.where((i) => i.status == _StockStatus.healthy).toList();
-    final reorderItems = _kItems.where((i) => i.reorderQty > 0).toList();
-    final reorderTotal = reorderItems.fold(0.0, (s, i) => s + i.reorderCost);
     final healthScore = (healthy.length / _kItems.length * 100).round();
 
     return SingleChildScrollView(
@@ -228,9 +226,6 @@ class IceScreen extends StatelessWidget {
             const SizedBox(height: 10),
             ...healthy.map(_buildItemCard),
             const SizedBox(height: 20),
-          ],
-          if (reorderItems.isNotEmpty) ...[
-            _buildReorderSummary(reorderItems, reorderTotal),
           ],
         ],
       ),
@@ -770,127 +765,6 @@ class IceScreen extends StatelessWidget {
         Text(' vs last wk',
             style: TextStyle(fontSize: 10, color: Colors.grey[400])),
       ],
-    );
-  }
-
-  // ── Reorder summary ────────────────────────────────────────────────────────
-
-  Widget _buildReorderSummary(List<_IceItem> items, double total) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-            child: Row(
-              children: [
-                const Icon(Icons.shopping_cart_checkout_rounded,
-                    color: _kBlue, size: 18),
-                const SizedBox(width: 8),
-                const Text('Suggested Reorder',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A))),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: _kBlue.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text('${items.length} items',
-                      style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: _kBlue)),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Color(0xFFF0F2F5)),
-          ...items.map((item) {
-            final statusColor = item.status == _StockStatus.critical
-                ? _kCritical
-                : _kLow;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                children: [
-                  Text(item.emoji, style: const TextStyle(fontSize: 18)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(item.name,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                  ),
-                  Text('${item.reorderQty} ${item.unit}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                  const SizedBox(width: 12),
-                  Text('₹${item.reorderCost.toInt()}',
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: statusColor)),
-                ],
-              ),
-            );
-          }),
-          const Divider(height: 1, color: Color(0xFFF0F2F5)),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: Row(
-              children: [
-                const Text('Total Reorder Cost',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A))),
-                const Spacer(),
-                Text('₹${total.toInt()}',
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _kBlue)),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.send_rounded, size: 16, color: Colors.white),
-                label: const Text(
-                  'Send Reorder to Supplier',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _kBlue,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

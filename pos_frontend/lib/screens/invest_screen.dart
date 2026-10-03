@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'payment_method_screen.dart';
 
 const _kGold1 = Color(0xFFB45309);
 const _kGold2 = Color(0xFFD97706);
@@ -820,7 +821,14 @@ class _InvestScreenState extends State<InvestScreen> {
           width: double.infinity,
           height: 52,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PaymentMethodScreen(
+                  amount: _dailyAmount.toDouble(),
+                ),
+              ),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: _kGold1,
               shape: RoundedRectangleBorder(
