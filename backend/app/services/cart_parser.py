@@ -78,7 +78,7 @@ def _transcribe(audio_bytes: bytes, filename: str) -> str:
         with open(tmp_path, "rb") as f:
             response = client.speech_to_text.transcribe(
                 file=f,
-                model="saaras:v2",
+                model="saaras:v4",
                 mode="transcribe",
             )
     except Exception as exc:
@@ -100,7 +100,7 @@ def _extract_items(transcript: str) -> list[CartItem]:
     print(f"[LLM] Parsing cart items from: {transcript!r}")
     try:
         response = client.chat.completions(
-            model="sarvam-m",
+            model="sarvam-105b",
             messages=[
                 {"role": "system", "content": _SYSTEM_PROMPT},
                 {"role": "user", "content": f'Cart command: "{transcript}"'},
