@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'charge_screen.dart';
 import 'kirana_store_screen.dart';
+import 'ice_screen.dart';
 
 const _kBlue = Color(0xFF002970);
 
@@ -19,7 +20,7 @@ class _PosHomeScreenState extends State<PosHomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -44,6 +45,7 @@ class _PosHomeScreenState extends State<PosHomeScreen>
                 _buildSalesTab(),
                 _buildPlaceholder('Invoices'),
                 _buildPlaceholder('Products'),
+                const IceScreen(),
               ],
             ),
           ),
@@ -103,6 +105,7 @@ class _PosHomeScreenState extends State<PosHomeScreen>
           Tab(text: 'Sales'),
           Tab(text: 'Invoices'),
           Tab(text: 'Products'),
+          Tab(text: 'ICE'),
         ],
         labelColor: Colors.white,
         unselectedLabelColor: Colors.white54,
