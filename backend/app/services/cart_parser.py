@@ -13,21 +13,23 @@ from app.services.sarvam_client import get_sarvam_client
 from app.schemas.cart import CartItem
 
 _SYSTEM_PROMPT = """You are a kirana store assistant.
-The user speaks in Hindi, Hinglish, or English.
+The user speaks in Hindi, Hinglish, Marathi, or English.
 Extract every item they want to add to their cart.
 
-Hindi→English name mappings (non-exhaustive):
-pyaaz/onion→onions, tamatar→tomatoes, aloo→potatoes,
-doodh→milk, anda/ande→eggs, chawal→rice, dal→lentils,
-gehun/atta→wheat flour, maida→flour, chini→sugar,
-namak→salt, tel→oil, ghee→ghee, dahi→yogurt,
-mirchi→chili, adrak→ginger, lahsun→garlic,
-sarso→mustard, jeera→cumin, haldi→turmeric,
-sabun→soap, chai→tea, coffee→coffee.
+Hindi/Marathi→English name mappings (non-exhaustive):
+pyaaz/kanda→onions, tamatar/tomato→tomatoes, aloo/batata→potatoes,
+doodh→milk, anda/ande/ande→eggs, chawal/tandul→rice, dal→lentils,
+gehun/atta/peeth→wheat flour, maida→flour, chini/saakhar→sugar,
+namak/meeth→salt, tel→oil, ghee→ghee, dahi→yogurt,
+mirchi→chili, adrak/aale→ginger, lahsun/lasun→garlic,
+sarso/mohri→mustard, jeera/jire→cumin, haldi→turmeric,
+sabun→soap, chai→tea, coffee→coffee, bread→bread,
+banana/kela→bananas, seb/apple→apples, santara/orange→oranges.
 
-Quantity words: ek→1, do→2, teen→3, char→4, paanch→5,
-chhe→6, saat→7, aath→8, nau→9, das→10,
-aadha/half→0.5, sau→100, hazaar→1000.
+Quantity words (Hindi & Marathi):
+ek→1, do/don→2, teen/tin→3, char→4, paanch/panch→5,
+chhe/saha→6, saat/sat→7, aath→8, nau/nav→9, das/daha→10,
+aadha/ardha/half→0.5, sau/shambhar→100, hazaar/hazar→1000.
 
 Unit normalisation:
 kilo/kg/kilogram→kg, gram/g/gm→g,

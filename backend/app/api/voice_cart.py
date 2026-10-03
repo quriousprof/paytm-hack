@@ -9,8 +9,9 @@ router = APIRouter(prefix="/voice-cart", tags=["voice-cart"])
 async def voice_cart(audio: UploadFile = File(...)):
     """
     Accept a WAV/MP3 audio file of a spoken cart command.
+    Supports Hindi, Hinglish, Marathi, and English.
 
-    Example input (spoken):  "ek kilo pyaaz aur do kilo tamatar"
+    Example input (spoken):  "ek kilo kanda aani don kilo batata"
     Example response:
     {
       "transcript": "एक किलो प्याज और दो किलो टमाटर",
