@@ -6,7 +6,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Color(0xFF1A1A2E),
+      statusBarColor: Color(0xFF002970),
       statusBarIconBrightness: Brightness.light,
     ),
   );
@@ -22,11 +22,8 @@ class PaytmPosApp extends StatelessWidget {
       title: 'Paytm POS',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF002970),
-          brightness: Brightness.dark,
-        ),
-        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF002970)),
+        fontFamily: 'Roboto',
       ),
       home: const PosHomeScreen(),
     );

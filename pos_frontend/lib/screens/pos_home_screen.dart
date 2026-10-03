@@ -1,5 +1,8 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'payment_method_screen.dart';
+import 'charge_screen.dart';
+
+const _kBlue = Color(0xFF002970);
 
 class PosHomeScreen extends StatefulWidget {
   const PosHomeScreen({super.key});
@@ -8,287 +11,469 @@ class PosHomeScreen extends StatefulWidget {
   State<PosHomeScreen> createState() => _PosHomeScreenState();
 }
 
-class _PosHomeScreenState extends State<PosHomeScreen> {
-  String _amount = '';
-  static const _bgDark = Color(0xFF0D0D1A);
-  static const _surface = Color(0xFF1A1A2E);
-  static const _accentLight = Color(0xFF1A56DB);
+class _PosHomeScreenState extends State<PosHomeScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
 
-  void _onKey(String key) {
-    setState(() {
-      if (key == 'C') {
-        _amount = '';
-      } else if (key == '⌫') {
-        if (_amount.isNotEmpty) _amount = _amount.substring(0, _amount.length - 1);
-      } else if (key == '.') {
-        if (!_amount.contains('.')) _amount += key;
-      } else {
-        if (_amount.length < 10) _amount += key;
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
   }
 
-  String get _displayAmount {
-    if (_amount.isEmpty) return '0';
-    return _amount;
-  }
-
-  void _proceedToPayment() {
-    if (_amount.isEmpty || double.tryParse(_amount) == 0) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PaymentMethodScreen(amount: double.parse(_amount)),
-      ),
-    );
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgDark,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(child: _buildAmountDisplay()),
-            _buildNumpad(),
-            _buildChargeButton(),
-          ],
+      backgroundColor: const Color(0xFFF0F2F5),
+      drawer: _buildDrawer(),
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          _buildTabBar(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildSalesTab(),
+                _buildPlaceholder('Invoices'),
+                _buildPlaceholder('Products'),
+              ],
+            ),
+          ),
+          _buildFilterBar(),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ChargeScreen()),
+        ),
+        backgroundColor: _kBlue,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'New Sale',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: _kBlue,
+      elevation: 0,
+      leading: Builder(
+        builder: (ctx) => IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => Scaffold.of(ctx).openDrawer(),
+        ),
+      ),
+      title: const Text(
+        'Dashboard',
+        style: TextStyle(
+            color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+      ),
+      actions: [
+        IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.search, color: Colors.white)),
+        IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.account_circle_outlined, color: Colors.white)),
+        IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_outlined, color: Colors.white)),
+      ],
+    );
+  }
+
+  Widget _buildTabBar() {
     return Container(
-      color: _surface,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      child: Row(
-        children: [
-          Image.asset('assets/paytm-logo.jpg',
-              width: 80, fit: BoxFit.contain),
-          const SizedBox(width: 8),
-          Text(
-            'POS',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.6),
-              fontSize: 16,
-              fontWeight: FontWeight.w300,
-              letterSpacing: 2,
-            ),
-          ),
-          const Spacer(),
-          _headerChip(Icons.wifi, 'Online'),
-          const SizedBox(width: 8),
-          _headerChip(Icons.battery_full, '98%'),
+      color: _kBlue,
+      child: TabBar(
+        controller: _tabController,
+        tabs: const [
+          Tab(text: 'Sales'),
+          Tab(text: 'Invoices'),
+          Tab(text: 'Products'),
         ],
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white54,
+        labelStyle:
+            const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        unselectedLabelStyle:
+            const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+        indicatorColor: Colors.white,
+        indicatorWeight: 3,
       ),
     );
   }
 
-  Widget _headerChip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: Colors.greenAccent),
-          const SizedBox(width: 4),
-          Text(label, style: const TextStyle(fontSize: 11, color: Colors.white70)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAmountDisplay() {
-    return Container(
-      padding: const EdgeInsets.all(24),
+  Widget _buildDrawer() {
+    return Drawer(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'ENTER AMOUNT',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
-              fontSize: 12,
-              letterSpacing: 2,
-              fontWeight: FontWeight.w600,
+          DrawerHeader(
+            decoration: const BoxDecoration(color: _kBlue),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Image.asset('assets/paytm-logo.jpg',
+                    width: 120, fit: BoxFit.contain),
+                const SizedBox(height: 8),
+                const Text('Merchant Dashboard',
+                    style: TextStyle(color: Colors.white70, fontSize: 13)),
+              ],
             ),
           ),
+          _drawerItem(Icons.dashboard_outlined, 'Dashboard', selected: true),
+          _drawerItem(Icons.receipt_long_outlined, 'Invoices'),
+          _drawerItem(Icons.inventory_2_outlined, 'Products'),
+          _drawerItem(Icons.bar_chart_outlined, 'Reports'),
+          _drawerItem(Icons.settings_outlined, 'Settings'),
+          const Spacer(),
+          _drawerItem(Icons.logout, 'Logout'),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _drawerItem(IconData icon, String label, {bool selected = false}) {
+    return ListTile(
+      leading: Icon(icon,
+          color: selected ? _kBlue : Colors.grey[600], size: 22),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: selected ? _kBlue : Colors.grey[800],
+          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+          fontSize: 14,
+        ),
+      ),
+      tileColor:
+          selected ? _kBlue.withValues(alpha: 0.07) : null,
+      onTap: () => Navigator.pop(context),
+    );
+  }
+
+  Widget _buildSalesTab() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      children: [
+        _buildBusinessBanner(),
+        const SizedBox(height: 16),
+        _buildPaymentSplitCard(),
+        const SizedBox(height: 88), // FAB clearance
+      ],
+    );
+  }
+
+  Widget _buildBusinessBanner() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+      child: Column(
+        children: [
+          const Text(
+            'Business',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const Text(
+            'with',
+            style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.6),
+          ),
+          const SizedBox(height: 6),
+          Image.asset('assets/paytm-logo.jpg',
+              width: 140, fit: BoxFit.contain),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Text(
-                  '₹',
-                  style: TextStyle(
-                    color: _amount.isEmpty
-                        ? Colors.white.withValues(alpha: 0.3)
-                        : Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w300,
-                  ),
+            children: List.generate(5, (i) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: i == 0 ? 20 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: i == 0 ? _kBlue : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(3),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    _displayAmount,
-                    style: TextStyle(
-                      color: _amount.isEmpty
-                          ? Colors.white.withValues(alpha: 0.2)
-                          : Colors.white,
-                      fontSize: 72,
-                      fontWeight: FontWeight.w200,
-                      letterSpacing: -2,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              );
+            }),
           ),
-          if (_amount.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Container(
-              height: 2,
-              width: 120,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [_accentLight, _accentLight.withValues(alpha: 0)],
-                ),
-                borderRadius: BorderRadius.circular(1),
-              ),
-            ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildNumpad() {
-    final keys = [
-      ['1', '2', '3'],
-      ['4', '5', '6'],
-      ['7', '8', '9'],
-      ['.', '0', '⌫'],
+  Widget _buildPaymentSplitCard() {
+    const segments = [
+      _ChartSegment(
+          color: Color(0xFF00BCD4), fraction: 0.45, label: 'CASH'),
+      _ChartSegment(
+          color: Color(0xFF002970), fraction: 0.41, label: 'CARD'),
+      _ChartSegment(
+          color: Color(0xFF1A56DB), fraction: 0.09, label: 'PAYTM'),
+      _ChartSegment(
+          color: Color(0xFFFF7043), fraction: 0.05, label: 'COUPONS'),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: keys.map((row) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: row.map((key) {
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: _NumKey(
-                      label: key,
-                      onTap: () => _onKey(key),
-                      isBackspace: key == '⌫',
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildChargeButton() {
-    final hasAmount = _amount.isNotEmpty && double.tryParse(_amount) != 0;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-      child: SizedBox(
-        width: double.infinity,
-        height: 60,
-        child: ElevatedButton(
-          onPressed: hasAmount ? _proceedToPayment : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: hasAmount ? _accentLight : _surface,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: _surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: hasAmount ? 4 : 0,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              const Icon(Icons.payments_outlined, size: 22),
-              const SizedBox(width: 10),
-              Text(
-                hasAmount
-                    ? 'Charge  ₹$_amount'
-                    : 'Enter an amount',
+              const Text(
+                'Payment Split',
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: hasAmount ? Colors.white : Colors.white30,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A1A)),
+              ),
+              const Spacer(),
+              Icon(Icons.more_vert, color: Colors.grey[400], size: 20),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 130,
+                height: 130,
+                child: CustomPaint(
+                    painter: _DonutChartPainter(segments)),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  children: [
+                    _legendRow(segments[0], '₹1,23,546.00'),
+                    _legendRow(segments[1], '₹1,70,046.00'),
+                    _legendRow(segments[2], '₹2,046.29'),
+                    _legendRowNegative(segments[3], '₹11,546.00'),
+                  ],
                 ),
               ),
             ],
           ),
-        ),
+        ],
       ),
+    );
+  }
+
+  Widget _legendRow(_ChartSegment seg, String amount) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+                color: seg.color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            seg.label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF555555),
+              letterSpacing: 0.4,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            amount,
+            style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A1A1A)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _legendRowNegative(_ChartSegment seg, String amount) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+                color: seg.color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            seg.label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF555555),
+              letterSpacing: 0.4,
+            ),
+          ),
+          const Spacer(),
+          Icon(Icons.arrow_downward, size: 12, color: Colors.red[400]),
+          const SizedBox(width: 2),
+          Text(
+            '-$amount',
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.red[400]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 6,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today_outlined,
+              size: 15, color: Color(0xFF555555)),
+          const SizedBox(width: 8),
+          const Text(
+            'YESTERDAY',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF333333),
+              letterSpacing: 0.5,
+            ),
+          ),
+          const Icon(Icons.arrow_drop_down,
+              color: Color(0xFF555555), size: 20),
+          const Spacer(),
+          ElevatedButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.tune, size: 15, color: Colors.white),
+            label: const Text(
+              'FILTER',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.8,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _kBlue,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(String label) {
+    return Center(
+      child: Text(label,
+          style: const TextStyle(color: Colors.grey, fontSize: 16)),
     );
   }
 }
 
-class _NumKey extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-  final bool isBackspace;
+// ── Data & Chart ─────────────────────────────────────────────────────────────
 
-  const _NumKey({
-    required this.label,
-    required this.onTap,
-    this.isBackspace = false,
-  });
+class _ChartSegment {
+  final Color color;
+  final double fraction;
+  final String label;
+  const _ChartSegment(
+      {required this.color,
+      required this.fraction,
+      required this.label});
+}
+
+class _DonutChartPainter extends CustomPainter {
+  final List<_ChartSegment> segments;
+  const _DonutChartPainter(this.segments);
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 64,
-        decoration: BoxDecoration(
-          color: isBackspace
-              ? const Color(0xFF2A1A1A)
-              : const Color(0xFF1E1E30),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.05),
-          ),
-        ),
-        alignment: Alignment.center,
-        child: isBackspace
-            ? Icon(Icons.backspace_outlined,
-                size: 22, color: Colors.redAccent.withValues(alpha: 0.8))
-            : Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final outerR = size.width * 0.47;
+    final innerR = size.width * 0.28;
+    final arcR = (outerR + innerR) / 2;
+    final strokeW = outerR - innerR;
+    const gap = 0.05; // radians between segments
+
+    double startAngle = -pi / 2;
+    for (final seg in segments) {
+      final sweep = 2 * pi * seg.fraction - gap;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: arcR),
+        startAngle,
+        sweep,
+        false,
+        Paint()
+          ..color = seg.color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeW
+          ..strokeCap = StrokeCap.butt,
+      );
+      startAngle += sweep + gap;
+    }
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
 }

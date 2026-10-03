@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import 'payment_processing_screen.dart';
 
+const _kBlue = Color(0xFF002970);
+
 class PaymentMethodScreen extends StatelessWidget {
   final double amount;
 
   const PaymentMethodScreen({super.key, required this.amount});
 
-  static const _bgDark = Color(0xFF0D0D1A);
-  static const _surface = Color(0xFF1A1A2E);
-
   void _selectMethod(BuildContext context, PaymentMethod method) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PaymentProcessingScreen(
-          amount: amount,
-          method: method,
-        ),
+        builder: (_) =>
+            PaymentProcessingScreen(amount: amount, method: method),
       ),
     );
   }
@@ -24,48 +21,27 @@ class PaymentMethodScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgDark,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            _buildAmountBanner(),
-            const SizedBox(height: 24),
-            Expanded(child: _buildMethods(context)),
-          ],
+      backgroundColor: const Color(0xFFF0F2F5),
+      appBar: AppBar(
+        backgroundColor: _kBlue,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: _surface,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.arrow_back_ios_new,
-                  size: 16, color: Colors.white),
-            ),
-          ),
-          const SizedBox(width: 14),
-          const Text(
-            'Choose Payment Method',
-            style: TextStyle(
+        title: const Text(
+          'Choose Payment Method',
+          style: TextStyle(
               color: Colors.white,
               fontSize: 17,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+              fontWeight: FontWeight.w600),
+        ),
+      ),
+      body: Column(
+        children: [
+          _buildAmountBanner(),
+          const SizedBox(height: 8),
+          Expanded(child: _buildMethods(context)),
         ],
       ),
     );
@@ -73,7 +49,8 @@ class PaymentMethodScreen extends StatelessWidget {
 
   Widget _buildAmountBanner() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -81,7 +58,7 @@ class PaymentMethodScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -89,30 +66,30 @@ class PaymentMethodScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Amount to Collect',
-                style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
+                style: TextStyle(color: Colors.white70, fontSize: 13),
               ),
               const SizedBox(height: 4),
               Text(
                 '₹ ${amount.toStringAsFixed(2)}',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 32,
+                  fontSize: 30,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
           Container(
-            width: 56,
-            height: 56,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.receipt_long, color: Colors.white, size: 28),
+            child: const Icon(Icons.receipt_long,
+                color: Colors.white, size: 26),
           ),
         ],
       ),
@@ -120,58 +97,46 @@ class PaymentMethodScreen extends StatelessWidget {
   }
 
   Widget _buildMethods(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          Text(
-            'SELECT METHOD',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.35),
-              fontSize: 11,
-              letterSpacing: 2,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _methodTile(
-            context,
-            method: PaymentMethod.qr,
-            icon: Icons.qr_code_2,
-            title: 'QR Code',
-            subtitle: 'Show QR — customer scans & pays',
-            color: const Color(0xFF00897B),
-            badge: 'POPULAR',
-          ),
-          const SizedBox(height: 14),
-          _methodTile(
-            context,
-            method: PaymentMethod.tap,
-            icon: Icons.contactless,
-            title: 'Tap to Pay (NFC)',
-            subtitle: 'Tap card or phone to terminal',
-            color: const Color(0xFF1A56DB),
-          ),
-          const SizedBox(height: 14),
-          _methodTile(
-            context,
-            method: PaymentMethod.swipe,
-            icon: Icons.credit_card,
-            title: 'Swipe / Insert Card',
-            subtitle: 'Debit or credit card via terminal',
-            color: const Color(0xFF7B1FA2),
-          ),
-          const SizedBox(height: 14),
-          _methodTile(
-            context,
-            method: PaymentMethod.cash,
-            icon: Icons.currency_rupee,
-            title: 'Cash',
-            subtitle: 'Record a cash transaction',
-            color: const Color(0xFFEF6C00),
-          ),
-        ],
-      ),
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _methodTile(
+          context,
+          method: PaymentMethod.qr,
+          icon: Icons.qr_code_2,
+          title: 'QR Code',
+          subtitle: 'Show QR — customer scans & pays',
+          color: const Color(0xFF00897B),
+          badge: 'POPULAR',
+        ),
+        const SizedBox(height: 12),
+        _methodTile(
+          context,
+          method: PaymentMethod.tap,
+          icon: Icons.contactless,
+          title: 'Tap to Pay (NFC)',
+          subtitle: 'Tap card or phone to terminal',
+          color: _kBlue,
+        ),
+        const SizedBox(height: 12),
+        _methodTile(
+          context,
+          method: PaymentMethod.swipe,
+          icon: Icons.credit_card,
+          title: 'Swipe / Insert Card',
+          subtitle: 'Debit or credit card via terminal',
+          color: const Color(0xFF7B1FA2),
+        ),
+        const SizedBox(height: 12),
+        _methodTile(
+          context,
+          method: PaymentMethod.cash,
+          icon: Icons.currency_rupee,
+          title: 'Cash',
+          subtitle: 'Record a cash transaction',
+          color: const Color(0xFFEF6C00),
+        ),
+      ],
     );
   }
 
@@ -187,22 +152,29 @@ class PaymentMethodScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => _selectMethod(context, method),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: _surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.25)),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 50,
-              height: 50,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(14),
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: 26),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -214,8 +186,8 @@ class PaymentMethodScreen extends StatelessWidget {
                       Text(
                         title,
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
+                          color: Color(0xFF1A1A1A),
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -225,7 +197,8 @@ class PaymentMethodScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00897B).withValues(alpha: 0.2),
+                            color: const Color(0xFF00897B)
+                                .withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
                                 color: const Color(0xFF00897B),
@@ -247,16 +220,13 @@ class PaymentMethodScreen extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.45),
-                      fontSize: 12,
-                    ),
+                    style: const TextStyle(
+                        color: Color(0xFF888888), fontSize: 12),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right,
-                color: Colors.white.withValues(alpha: 0.3)),
+            Icon(Icons.chevron_right, color: Colors.grey[400]),
           ],
         ),
       ),
