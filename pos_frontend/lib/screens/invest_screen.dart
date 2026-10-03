@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'payment_method_screen.dart';
+import 'gold_investment_screen.dart';
 
 const _kGold1 = Color(0xFFB45309);
 const _kGold2 = Color(0xFFD97706);
@@ -824,7 +824,7 @@ class _InvestScreenState extends State<InvestScreen> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => PaymentMethodScreen(
+                builder: (_) => GoldInvestmentScreen(
                   amount: _dailyAmount.toDouble(),
                 ),
               ),
