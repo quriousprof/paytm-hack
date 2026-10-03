@@ -4,12 +4,48 @@ import 'package:flutter/material.dart';
 import '../config.dart';
 import '../services/voice_cart_service.dart';
 
+// ── Preview model ─────────────────────────────────────────────────────────────
+// Returned by the resolveItems callback so the sheet can render catalog-matched
+// items in the same style as the inventory / cart sheet.
+
+class VoiceCartPreviewItem {
+  final String name;
+  final String emoji;
+  final Color bgColor;
+  final double pricePerUnit; // product's base price per unit
+  final double qty; // from voice command
+  final String unit; // product's catalog unit string, e.g. "1 kg"
+  final bool found; // false ↔ no catalog match
+
+  const VoiceCartPreviewItem({
+    required this.name,
+    required this.emoji,
+    required this.bgColor,
+    required this.pricePerUnit,
+    required this.qty,
+    required this.unit,
+    required this.found,
+  });
+
+  double get subtotal => pricePerUnit * qty;
+}
+
+// ── Sheet ─────────────────────────────────────────────────────────────────────
+
 enum _VoiceState { listening, processing, done, error }
 
 class VoiceListeningSheet extends StatefulWidget {
   final void Function(List<VoiceCartItem> items) onItemsConfirmed;
 
-  const VoiceListeningSheet({super.key, required this.onItemsConfirmed});
+  /// Resolves raw VoiceCartItems → VoiceCartPreviewItems by fuzzy-matching
+  /// against the product catalog. Provided by KiranaStoreScreen.
+  final List<VoiceCartPreviewItem> Function(List<VoiceCartItem>) resolveItems;
+
+  const VoiceListeningSheet({
+    super.key,
+    required this.onItemsConfirmed,
+    required this.resolveItems,
+  });
 
   @override
   State<VoiceListeningSheet> createState() => _VoiceListeningSheetState();
@@ -21,33 +57,29 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
 
   late final AnimationController _wavePhaseController;
   Timer? _ampTimer;
-  double _normalizedAmp = 0.1; // 0.0 – 1.0, live mic level
+  double _normalizedAmp = 0.1;
 
   _VoiceState _state = _VoiceState.listening;
   String _transcript = '';
-  List<VoiceCartItem> _items = [];
+  List<VoiceCartItem> _rawItems = [];
+  List<VoiceCartPreviewItem> _preview = [];
   String _errorMsg = '';
 
   @override
   void initState() {
     super.initState();
-
-    // Drives sine-wave phase across the bars (full cycle every 700 ms)
     _wavePhaseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..repeat();
-
     _startSession();
   }
 
   Future<void> _startSession() async {
     await _service.startRecording();
-    // Poll mic amplitude every 80 ms to animate the waveform
     _ampTimer = Timer.periodic(const Duration(milliseconds: 80), (_) async {
       if (_state != _VoiceState.listening) return;
       final db = await _service.getAmplitudeDb();
-      // dB range: -60 (silence) → 0 (max). Normalize to 0–1.
       final norm = ((db + 60) / 60).clamp(0.0, 1.0);
       if (mounted) setState(() => _normalizedAmp = norm);
     });
@@ -58,10 +90,12 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
     setState(() => _state = _VoiceState.processing);
     try {
       final result = await _service.stopAndSend();
+      final preview = widget.resolveItems(result.items);
       if (mounted) {
         setState(() {
           _transcript = result.transcript;
-          _items = result.items;
+          _rawItems = result.items;
+          _preview = preview;
           _state = _VoiceState.done;
         });
       }
@@ -89,7 +123,7 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
     super.dispose();
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -98,15 +132,25 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      padding: EdgeInsets.fromLTRB(
-        24, 14, 24, 28 + MediaQuery.of(context).padding.bottom,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.88,
+      ),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).padding.bottom,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          const SizedBox(height: 14),
           _dragHandle(),
           const SizedBox(height: 20),
-          _buildBody(),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildBody(),
+            ),
+          ),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -134,7 +178,7 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
     }
   }
 
-  // ── Listening ─────────────────────────────────────────────────────────────
+  // ── Listening ──────────────────────────────────────────────────────────────
 
   Widget _buildListening() {
     return Column(
@@ -154,13 +198,11 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
           style: TextStyle(fontSize: 13, color: Colors.grey[500]),
         ),
         const SizedBox(height: 36),
-        // Live waveform
         _LiveWaveform(
           phaseAnimation: _wavePhaseController,
           amplitude: _normalizedAmp,
         ),
         const SizedBox(height: 40),
-        // Red stop button
         GestureDetector(
           onTap: _stopAndProcess,
           child: Container(
@@ -177,28 +219,28 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
                 ),
               ],
             ),
-            child: const Icon(Icons.stop_rounded, color: Colors.white, size: 34),
+            child:
+                const Icon(Icons.stop_rounded, color: Colors.white, size: 34),
           ),
         ),
         const SizedBox(height: 10),
-        const Text(
-          'Tap to stop',
-          style: TextStyle(fontSize: 13, color: Colors.grey),
-        ),
+        const Text('Tap to stop',
+            style: TextStyle(fontSize: 13, color: Colors.grey)),
         const SizedBox(height: 16),
         TextButton(
           onPressed: _cancel,
           child: Text('Cancel', style: TextStyle(color: Colors.grey[500])),
         ),
+        const SizedBox(height: 8),
       ],
     );
   }
 
-  // ── Processing ────────────────────────────────────────────────────────────
+  // ── Processing ─────────────────────────────────────────────────────────────
 
   Widget _buildProcessing() {
     return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 32),
+      padding: EdgeInsets.symmetric(vertical: 48),
       child: Column(
         children: [
           CircularProgressIndicator(color: kBlue, strokeWidth: 2.5),
@@ -221,149 +263,340 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
     );
   }
 
-  // ── Done ──────────────────────────────────────────────────────────────────
+  // ── Done ───────────────────────────────────────────────────────────────────
 
   Widget _buildDone() {
+    final matched = _preview.where((p) => p.found).toList();
+    final unmatched = _preview.where((p) => !p.found).toList();
+    final total = matched.fold(0.0, (s, p) => s + p.subtotal);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Transcript bubble
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.record_voice_over_outlined,
-                  size: 16, color: Colors.grey[400]),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '"$_transcript"',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        _transcriptBubble(),
         const SizedBox(height: 20),
 
-        if (_items.isEmpty) ...[
+        if (_preview.isEmpty) ...[
+          _emptyState(),
+          const SizedBox(height: 8),
           Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+            child: TextButton(
+              onPressed: _cancel,
+              child:
+                  Text('Cancel', style: TextStyle(color: Colors.grey[500])),
+            ),
+          ),
+        ] else ...[
+          // Header count
+          _sectionLabel(
+            matched.isEmpty
+                ? 'No items matched'
+                : '${matched.length} ${matched.length == 1 ? 'item' : 'items'} found'
+                    '${unmatched.isNotEmpty ? '  ·  ${unmatched.length} not in catalog' : ''}',
+          ),
+          const SizedBox(height: 10),
+
+          // Matched items — cart-sheet row style
+          if (matched.isNotEmpty) ...[
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFEEEEEE)),
+                borderRadius: BorderRadius.circular(14),
+              ),
               child: Column(
                 children: [
-                  Icon(Icons.search_off_rounded, size: 44, color: Colors.grey[300]),
-                  const SizedBox(height: 8),
-                  Text('No items recognised',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 14)),
+                  for (int i = 0; i < matched.length; i++) ...[
+                    _matchedRow(matched[i]),
+                    if (i < matched.length - 1)
+                      const Divider(
+                          height: 1,
+                          indent: 20,
+                          endIndent: 20,
+                          color: Color(0xFFF5F5F5)),
+                  ],
                 ],
               ),
             ),
-          ),
-          _cancelButton(),
-        ] else ...[
-          Text(
-            '${_items.length} ${_items.length == 1 ? 'item' : 'items'} found',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ..._items.map(_itemRow),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                widget.onItemsConfirmed(_items);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kBlue,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-              ),
-              child: Text(
-                'Add ${_items.length} ${_items.length == 1 ? 'item' : 'items'} to Cart',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          _cancelButton(),
+            const SizedBox(height: 12),
+            // Bill summary
+            _billSummary(matched.length, total),
+          ],
+
+          // Unmatched items — dimmed
+          if (unmatched.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _sectionLabel('Not in catalog'),
+            const SizedBox(height: 8),
+            ...unmatched.map(_unmatchedRow),
+          ],
+
+          const SizedBox(height: 20),
+
+          // CTA
+          if (matched.isNotEmpty)
+            _addToCartButton(matched.length, total)
+          else
+            _cancelButton(),
+
+          if (matched.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _cancelButton(),
+          ],
+
+          const SizedBox(height: 4),
         ],
       ],
     );
   }
 
-  Widget _itemRow(VoiceCartItem item) {
-    final qtyStr = item.qty % 1 == 0
-        ? item.qty.toInt().toString()
-        : item.qty.toString();
+  Widget _transcriptBubble() => Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.record_voice_over_outlined,
+                size: 15, color: Colors.grey[400]),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '"$_transcript"',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget _sectionLabel(String text) => Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[500],
+          letterSpacing: 0.2,
+        ),
+      );
+
+  // Mirrors CartSheet._buildItemRow exactly
+  Widget _matchedRow(VoiceCartPreviewItem item) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: kBlue.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
+              color: item.bgColor,
+              borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: const Icon(Icons.check, size: 16, color: kBlue),
+            child: Text(item.emoji,
+                style: const TextStyle(fontSize: 22)),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              item.name,
-              style: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '${item.qty.toInt()} × ${item.unit}  ·  ₹${item.pricePerUnit.toInt()} each',
+                  style:
+                      TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
             ),
           ),
           Text(
-            '$qtyStr ${item.unit}',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            '₹${item.subtotal.toInt()}',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ── Error ─────────────────────────────────────────────────────────────────
+  Widget _unmatchedRow(VoiceCartPreviewItem item) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: Icon(Icons.help_outline,
+                size: 20, color: Colors.grey[400]),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '"${item.name}"',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[500],
+                  ),
+                ),
+                Text(
+                  'Not found — add manually',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _billSummary(int count, double total) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFA),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+      ),
+      child: Row(
+        children: [
+          Text(
+            'Total  ($count ${count == 1 ? 'item' : 'items'})',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF555555),
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '₹${total.toInt()}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: kBlue,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _addToCartButton(int count, double total) => SizedBox(
+        width: double.infinity,
+        height: 54,
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onItemsConfirmed(_rawItems);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kBlue,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14)),
+            elevation: 0,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Add $count ${count == 1 ? 'item' : 'items'} to Cart',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '₹${total.toInt()}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _emptyState() => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            children: [
+              Icon(Icons.search_off_rounded,
+                  size: 44, color: Colors.grey[300]),
+              const SizedBox(height: 8),
+              Text('No items recognised',
+                  style:
+                      TextStyle(color: Colors.grey[400], fontSize: 14)),
+            ],
+          ),
+        ),
+      );
+
+  Widget _cancelButton() => Center(
+        child: TextButton(
+          onPressed: _cancel,
+          child: Text('Cancel',
+              style: TextStyle(color: Colors.grey[500])),
+        ),
+      );
+
+  // ── Error ──────────────────────────────────────────────────────────────────
 
   Widget _buildError() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 32),
       child: Column(
         children: [
           Icon(Icons.error_outline_rounded, size: 48, color: Colors.red[300]),
           const SizedBox(height: 12),
-          const Text(
-            'Something went wrong',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          const Text('Something went wrong',
+              style:
+                  TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
             _errorMsg,
@@ -378,22 +611,13 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
       ),
     );
   }
-
-  Widget _cancelButton() => Center(
-        child: TextButton(
-          onPressed: _cancel,
-          child: Text('Cancel', style: TextStyle(color: Colors.grey[500])),
-        ),
-      );
 }
 
 // ── Live Waveform ─────────────────────────────────────────────────────────────
-// 9 bars whose heights are modulated by a sine wave (phase from animation)
-// and scaled by the real microphone amplitude.
 
 class _LiveWaveform extends StatelessWidget {
   final Animation<double> phaseAnimation;
-  final double amplitude; // 0.0 – 1.0
+  final double amplitude;
 
   const _LiveWaveform({
     required this.phaseAnimation,
@@ -417,9 +641,7 @@ class _LiveWaveform extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: List.generate(_bars, (i) {
               final phase = (i / _bars) * 2 * pi;
-              // Sine value 0..1 drives the shape of the wave
               final sine = (0.5 + 0.5 * sin(t + phase));
-              // Scale the wave by real amplitude; floor at 15 % so bars never vanish
               final scale = 0.15 + 0.85 * amplitude;
               final height = _minH + (_maxH - _minH) * sine * scale;
               final opacity = 0.35 + 0.65 * sine * scale;

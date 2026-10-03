@@ -118,8 +118,35 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => VoiceListeningSheet(
         onItemsConfirmed: _applyVoiceItems,
+        resolveItems: _resolveForPreview,
       ),
     );
+  }
+
+  List<VoiceCartPreviewItem> _resolveForPreview(List<VoiceCartItem> items) {
+    return items.map((item) {
+      final p = _fuzzyMatch(item.name);
+      if (p != null) {
+        return VoiceCartPreviewItem(
+          name: p.name,
+          emoji: p.emoji,
+          bgColor: p.bgColor,
+          pricePerUnit: p.price,
+          qty: item.qty,
+          unit: p.unit,
+          found: true,
+        );
+      }
+      return VoiceCartPreviewItem(
+        name: item.name,
+        emoji: '',
+        bgColor: Colors.grey.shade100,
+        pricePerUnit: 0,
+        qty: item.qty,
+        unit: item.unit,
+        found: false,
+      );
+    }).toList();
   }
 
   void _applyVoiceItems(List<VoiceCartItem> items) {
