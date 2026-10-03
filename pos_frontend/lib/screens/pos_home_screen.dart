@@ -14,22 +14,7 @@ class PosHomeScreen extends StatefulWidget {
   State<PosHomeScreen> createState() => _PosHomeScreenState();
 }
 
-class _PosHomeScreenState extends State<PosHomeScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
+class _PosHomeScreenState extends State<PosHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,18 +23,7 @@ class _PosHomeScreenState extends State<PosHomeScreen>
       appBar: _buildAppBar(),
       body: Column(
         children: [
-          _buildTabBar(),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildSalesTab(),
-                _buildPlaceholder('Invoices'),
-                _buildPlaceholder('Products'),
-                const IceScreen(),
-              ],
-            ),
-          ),
+          Expanded(child: _buildSalesTab()),
           _buildFilterBar(),
         ],
       ),
@@ -165,29 +139,6 @@ class _PosHomeScreenState extends State<PosHomeScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const _StoreProfileSheet(),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      color: _kBlue,
-      child: TabBar(
-        controller: _tabController,
-        tabs: const [
-          Tab(text: 'Sales'),
-          Tab(text: 'Invoices'),
-          Tab(text: 'Products'),
-          Tab(text: 'ICE'),
-        ],
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.white54,
-        labelStyle:
-            const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-        unselectedLabelStyle:
-            const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
-        indicatorColor: Colors.white,
-        indicatorWeight: 3,
-      ),
     );
   }
 
@@ -334,7 +285,10 @@ class _PosHomeScreenState extends State<PosHomeScreen>
 
   Widget _buildIceCard() {
     return _FeatureCard(
-      onTap: () => _tabController.animateTo(3),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const IceScreen()),
+      ),
       gradientColors: const [Color(0xFF0D47A1), Color(0xFF00838F)],
       accentColor: const Color(0xFF00ACC1),
       emoji: '📦',
@@ -571,12 +525,6 @@ class _PosHomeScreenState extends State<PosHomeScreen>
     );
   }
 
-  Widget _buildPlaceholder(String label) {
-    return Center(
-      child: Text(label,
-          style: const TextStyle(color: Colors.grey, fontSize: 16)),
-    );
-  }
 }
 
 // ── Feature cards ─────────────────────────────────────────────────────────────
