@@ -145,6 +145,16 @@ class PaymentMethodScreen extends StatelessWidget {
           subtitle: 'Record a cash transaction',
           color: const Color(0xFFEF6C00),
         ),
+        const SizedBox(height: 12),
+        _methodTile(
+          context,
+          method: PaymentMethod.udhaar,
+          icon: Icons.credit_score,
+          title: 'Udhaar / Paytm Postpaid',
+          subtitle: 'Customer pays later via Paytm credit limit',
+          color: const Color(0xFF3949AB),
+          badge: 'BUY NOW PAY LATER',
+        ),
       ],
     );
   }
@@ -192,12 +202,14 @@ class PaymentMethodScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: Color(0xFF1A1A1A),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            color: Color(0xFF1A1A1A),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       if (badge != null) ...[
@@ -206,18 +218,16 @@ class PaymentMethodScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00897B)
-                                .withValues(alpha: 0.1),
+                            color: color.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
-                                color: const Color(0xFF00897B),
-                                width: 0.5),
+                                color: color, width: 0.5),
                           ),
-                          child: const Text(
-                            'POPULAR',
+                          child: Text(
+                            badge,
                             style: TextStyle(
                               fontSize: 9,
-                              color: Color(0xFF00897B),
+                              color: color,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
                             ),
@@ -243,4 +253,4 @@ class PaymentMethodScreen extends StatelessWidget {
   }
 }
 
-enum PaymentMethod { qr, tap, swipe, cash }
+enum PaymentMethod { qr, tap, swipe, cash, udhaar }

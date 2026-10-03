@@ -336,6 +336,16 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
   }
 
   Widget _buildSuccess(BuildContext context) {
+    final bool isUdhaar = widget.method == PaymentMethod.udhaar;
+    final Color accentColor =
+        isUdhaar ? const Color(0xFF3949AB) : const Color(0xFF00897B);
+    final String title =
+        isUdhaar ? 'Postpaid Request Sent!' : 'Payment Successful!';
+    final String subtitle = isUdhaar
+        ? '₹ ${widget.amount.toStringAsFixed(2)} received via Paytm Postpaid'
+        : 'Transaction completed';
+    final String statusLabel = isUdhaar ? 'Approved' : 'Success';
+
     return Column(
       children: [
         Container(
@@ -343,9 +353,9 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
           width: double.infinity,
           padding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: const Text(
-            'Payment Complete',
-            style: TextStyle(
+          child: Text(
+            isUdhaar ? 'Postpaid Request' : 'Payment Complete',
+            style: const TextStyle(
                 color: Colors.white,
                 fontSize: 17,
                 fontWeight: FontWeight.w600),
@@ -360,28 +370,58 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                 child: Container(
                   width: 110,
                   height: 110,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0xFF00897B),
+                    color: accentColor,
                   ),
-                  child: const Icon(Icons.check,
-                      color: Colors.white, size: 56),
+                  child: Icon(
+                    isUdhaar ? Icons.credit_score : Icons.check,
+                    color: Colors.white,
+                    size: 56,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Payment Successful!',
-                style: TextStyle(
+              Text(
+                title,
+                style: const TextStyle(
                   color: Color(0xFF1A1A1A),
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Transaction completed',
-                style: TextStyle(color: Color(0xFF888888), fontSize: 14),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: isUdhaar ? accentColor : const Color(0xFF888888),
+                    fontSize: 14,
+                    fontWeight: isUdhaar
+                        ? FontWeight.w600
+                        : FontWeight.normal),
               ),
+              if (isUdhaar) ...[
+                const SizedBox(height: 8),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 48),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color:
+                        const Color(0xFF3949AB).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Amount added to customer\'s Paytm Postpaid bill',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Color(0xFF3949AB),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
               const SizedBox(height: 32),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 32),
@@ -405,8 +445,8 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
                     _summaryRow('Method', _methodLabel(widget.method)),
                     const SizedBox(height: 8),
-                    _summaryRow('Status', 'Success',
-                        valueColor: const Color(0xFF00897B)),
+                    _summaryRow('Status', statusLabel,
+                        valueColor: accentColor),
                     const SizedBox(height: 8),
                     _summaryRow('Txn ID', _txnId),
                   ],
@@ -504,6 +544,8 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
         return 'Card Swipe';
       case PaymentMethod.cash:
         return 'Cash';
+      case PaymentMethod.udhaar:
+        return 'Paytm Postpaid';
     }
   }
 
@@ -540,6 +582,14 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
           waitingText: 'Collecting Cash',
           waitingSubtext:
               'Collect ₹${widget.amount.toStringAsFixed(2)}\nfrom the customer',
+        );
+      case PaymentMethod.udhaar:
+        return _MethodConfig(
+          icon: Icons.credit_score,
+          color: const Color(0xFF3949AB),
+          waitingText: 'Sending Postpaid Request',
+          waitingSubtext:
+              'Charging ₹${widget.amount.toStringAsFixed(2)} to\ncustomer\'s Paytm Postpaid account',
         );
     }
   }

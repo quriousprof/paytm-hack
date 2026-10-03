@@ -40,6 +40,8 @@ class ReceiptScreen extends StatelessWidget {
         return 'Card Swipe';
       case PaymentMethod.cash:
         return 'Cash';
+      case PaymentMethod.udhaar:
+        return 'Paytm Postpaid';
     }
   }
 
