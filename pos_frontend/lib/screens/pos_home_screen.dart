@@ -176,6 +176,8 @@ class _PosHomeScreenState extends State<PosHomeScreen>
         const SizedBox(height: 16),
         _buildKiranaCard(),
         const SizedBox(height: 16),
+        _buildIceCard(),
+        const SizedBox(height: 16),
         _buildPaymentSplitCard(),
         const SizedBox(height: 88), // FAB clearance
       ],
@@ -313,6 +315,104 @@ class _PosHomeScreenState extends State<PosHomeScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildIceCard() {
+    return GestureDetector(
+      onTap: () => _tabController.animateTo(3),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Left panel
+            Container(
+              width: 110,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0D47A1), Color(0xFF00ACC1)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
+              ),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('📦', style: TextStyle(fontSize: 30)),
+                  SizedBox(height: 8),
+                  Text(
+                    'ICE',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Inventory',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            // Right panel — stats
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 14),
+                child: Column(
+                  children: [
+                    _iceStatRow('Health Score', '74%',
+                        color: const Color(0xFF00ACC1)),
+                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
+                    _iceStatRow('Critical Items', '3',
+                        color: const Color(0xFFD32F2F)),
+                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
+                    _iceStatRow('Reorder Value', '₹3,180'),
+                  ],
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(right: 10),
+              child: Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _iceStatRow(String label, String value, {Color? color}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color ?? const Color(0xFF1A1A1A),
+          ),
+        ),
+      ],
     );
   }
 
