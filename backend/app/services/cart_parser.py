@@ -1,0 +1,121 @@
+"""
+Two-step pipeline:
+  1. Sarvam STT  (saaras:v2)  → raw transcript
+  2. Sarvam LLM (sarvam-m)   → structured CartItem list
+"""
+
+import json
+import tempfile
+import os
+from fastapi import HTTPException
+
+from app.services.sarvam_client import get_sarvam_client
+from app.schemas.cart import CartItem
+
+_SYSTEM_PROMPT = """You are a kirana store assistant.
+The user speaks in Hindi, Hinglish, or English.
+Extract every item they want to add to their cart.
+
+Hindi→English name mappings (non-exhaustive):
+pyaaz/onion→onions, tamatar→tomatoes, aloo→potatoes,
+doodh→milk, anda/ande→eggs, chawal→rice, dal→lentils,
+gehun/atta→wheat flour, maida→flour, chini→sugar,
+namak→salt, tel→oil, ghee→ghee, dahi→yogurt,
+mirchi→chili, adrak→ginger, lahsun→garlic,
+sarso→mustard, jeera→cumin, haldi→turmeric,
+sabun→soap, chai→tea, coffee→coffee.
+
+Quantity words: ek→1, do→2, teen→3, char→4, paanch→5,
+chhe→6, saat→7, aath→8, nau→9, das→10,
+aadha/half→0.5, sau→100, hazaar→1000.
+
+Unit normalisation:
+kilo/kg/kilogram→kg, gram/g/gm→g,
+litre/liter/l→l, ml→ml,
+packet/pack/pkt→packet, piece/pcs/piec/number→piece,
+dozen/darjan→dozen.
+
+Return ONLY valid JSON, no extra text."""
+
+_RESPONSE_SCHEMA = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "CartItems",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "qty":  {"type": "number"},
+                            "unit": {"type": "string"},
+                        },
+                        "required": ["name", "qty", "unit"],
+                    },
+                }
+            },
+            "required": ["items"],
+        },
+    },
+}
+
+
+def _transcribe(audio_bytes: bytes, filename: str) -> str:
+    """Send audio bytes to Sarvam STT and return the transcript."""
+    client = get_sarvam_client()
+    suffix = os.path.splitext(filename)[1] or ".wav"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(audio_bytes)
+        tmp_path = tmp.name
+    try:
+        with open(tmp_path, "rb") as f:
+            response = client.speech_to_text.transcribe(
+                file=f,
+                model="saaras:v2",
+                mode="transcribe",
+            )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"STT error: {exc}") from exc
+    finally:
+        os.unlink(tmp_path)
+
+    transcript = response.transcript
+    if not transcript or not transcript.strip():
+        raise HTTPException(status_code=422, detail="STT returned an empty transcript")
+    return transcript
+
+
+def _extract_items(transcript: str) -> list[CartItem]:
+    """Send the transcript to Sarvam LLM and return parsed CartItems."""
+    client = get_sarvam_client()
+    try:
+        response = client.chat.completions(
+            model="sarvam-m",
+            messages=[
+                {"role": "system", "content": _SYSTEM_PROMPT},
+                {"role": "user", "content": f'Cart command: "{transcript}"'},
+            ],
+            response_format=_RESPONSE_SCHEMA,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"LLM error: {exc}") from exc
+
+    raw = response.choices[0].message.content
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=502, detail=f"LLM returned invalid JSON: {raw}"
+        ) from exc
+
+    return [CartItem(**item) for item in data.get("items", [])]
+
+
+def parse_voice_cart(audio_bytes: bytes, filename: str) -> tuple[str, list[CartItem]]:
+    """Full pipeline: audio → transcript → cart items."""
+    transcript = _transcribe(audio_bytes, filename)
+    items = _extract_items(transcript)
+    return transcript, items
