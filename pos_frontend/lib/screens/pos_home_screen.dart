@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'charge_screen.dart';
 import 'kirana_store_screen.dart';
 import 'ice_screen.dart';
+import 'invest_screen.dart';
 
 const _kBlue = Color(0xFF002970);
 
@@ -177,6 +178,8 @@ class _PosHomeScreenState extends State<PosHomeScreen>
         _buildKiranaCard(),
         const SizedBox(height: 16),
         _buildIceCard(),
+        const SizedBox(height: 16),
+        _buildInvestCard(),
         const SizedBox(height: 16),
         _buildPaymentSplitCard(),
         const SizedBox(height: 88), // FAB clearance
@@ -399,6 +402,108 @@ class _PosHomeScreenState extends State<PosHomeScreen>
   }
 
   Widget _iceStatRow(String label, String value, {Color? color}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color ?? const Color(0xFF1A1A1A),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInvestCard() {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const InvestScreen()),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Left panel
+            Container(
+              width: 110,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFB45309), Color(0xFFD97706), Color(0xFFFBBF24)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
+              ),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('💰', style: TextStyle(fontSize: 30)),
+                  SizedBox(height: 8),
+                  Text(
+                    'Invest',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Paytm Gold',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            // Right panel — stats
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 14),
+                child: Column(
+                  children: [
+                    _investStatRow("Today's Profit", '₹761',
+                        color: const Color(0xFFB45309)),
+                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
+                    _investStatRow('Portfolio', '₹9,142',
+                        color: const Color(0xFF16A34A)),
+                    const Divider(height: 14, color: Color(0xFFEEEEEE)),
+                    _investStatRow('Returns', '+11.5%',
+                        color: const Color(0xFF16A34A)),
+                  ],
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(right: 10),
+              child: Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _investStatRow(String label, String value, {Color? color}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
