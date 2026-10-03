@@ -801,7 +801,7 @@ class _NotificationsSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          _alertSection(context, 'Critical — stockout imminent',
+          _alertSection(context, 'Critical - stockout imminent',
               const Color(0xFFEF4444), const Color(0xFFFFEBEE), [
             _AlertItem('🧅', 'Onions', '2.4 kg left · stockout in < 1 day',
                 const Color(0xFFEF4444)),
@@ -811,7 +811,7 @@ class _NotificationsSheet extends StatelessWidget {
                 const Color(0xFFEF4444)),
           ]),
           const SizedBox(height: 12),
-          _alertSection(context, 'Low stock — reorder soon',
+          _alertSection(context, 'Low stock - reorder soon',
               const Color(0xFFE65100), const Color(0xFFFFF3E0), [
             _AlertItem('🥔', 'Potatoes', '6.5 kg · 2.3 days left',
                 const Color(0xFFE65100)),

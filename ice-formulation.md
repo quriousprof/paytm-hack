@@ -1,6 +1,6 @@
-# ICE — Inventory Confidence Engine: Formulation
+# ICE - Inventory Confidence Engine: Formulation
 
-ICE infers inventory state purely from POS sales events — no manual stock counts required. Every metric flows from a single source of truth: the timestamped sale records emitted by the kirana POS.
+ICE infers inventory state purely from POS sales events - no manual stock counts required. Every metric flows from a single source of truth: the timestamped sale records emitted by the kirana POS.
 
 ---
 
@@ -28,23 +28,23 @@ All higher-level metrics derive from `D[item][day]`.
 
 ---
 
-## 2. Velocity — V(t)
+## 2. Velocity - V(t)
 
 Velocity is the **exponentially weighted moving average (EWMA)** of daily demand. It gives more weight to recent days, making ICE responsive to short-term shifts without overreacting to single-day noise.
 
 ```
 V(t) = α · D(t)  +  (1 − α) · V(t−1)
 
-α = 0.30   (smoothing factor — tune higher for faster response)
+α = 0.30   (smoothing factor - tune higher for faster response)
 ```
 
-**Seed rule:** `V(0) = D(0)` — velocity is bootstrapped from the first day of recorded sales for that item.
+**Seed rule:** `V(0) = D(0)` - velocity is bootstrapped from the first day of recorded sales for that item.
 
 **Interpretation:** `V(t)` is the best single-number answer to *"how many units do we sell per day?"* as of day `t`.
 
 ---
 
-## 3. Trend — τ
+## 3. Trend - τ
 
 Trend measures the **relative acceleration** of demand by comparing two EWMA windows: a short (recent) window vs. a longer (baseline) window.
 
@@ -61,14 +61,14 @@ V_baseline = EWMA(D, α=0.15) over last 14 days   // slower baseline
 | `−5%`   | Demand slightly lower than recent average |
 | `0%`    | Stable |
 
-**Example — Onions during festival week:**
+**Example - Onions during festival week:**
 - V_baseline = 2.2 kg/day (past 14 days)
 - V_recent   = 3.1 kg/day (last 4 days)
 - τ = (3.1 − 2.2) / 2.2 × 100 = **+40.9%**
 
 ---
 
-## 4. Adjusted Velocity — V_adj
+## 4. Adjusted Velocity - V_adj
 
 Before computing any forward projections, velocity is adjusted by the current trend so that allocations respond to demand acceleration, not just historical averages:
 
@@ -80,7 +80,7 @@ All downstream formulae (days-to-stockout, 7-day allocation) use `V_adj`.
 
 ---
 
-## 5. Stock Estimation — S_est
+## 5. Stock Estimation - S_est
 
 ICE does not require the merchant to enter stock counts. Instead it maintains a **running stock estimate** anchored to the last known quantity and depleted by sales:
 
@@ -105,11 +105,11 @@ If `D(t) = 0` for 2 consecutive days while `V_adj(t−1) > 0.5`, ICE flags a **p
 S_pct = S_est / S_capacity   (clamped to [0, 1])
 ```
 
-`S_capacity` is the merchant's typical max stock — set once per item and rarely changes.
+`S_capacity` is the merchant's typical max stock - set once per item and rarely changes.
 
 ---
 
-## 6. Days to Stockout — D_out
+## 6. Days to Stockout - D_out
 
 ```
 D_out = S_est / V_adj        (if V_adj > 0, else ∞)
@@ -129,11 +129,11 @@ elif D_out < 3.0  OR  S_pct < 0.30  →  LOW
 else                                 →  HEALTHY
 ```
 
-The OR condition means an item with 25% stock but fast velocity (D_out < 1) is still CRITICAL — stock percentage alone is not sufficient.
+The OR condition means an item with 25% stock but fast velocity (D_out < 1) is still CRITICAL - stock percentage alone is not sufficient.
 
 ---
 
-## 8. Confidence Score — C
+## 8. Confidence Score - C
 
 Confidence quantifies how **reliable** ICE's estimate is for a given item. An item sold every day by the hundreds has a high-confidence velocity; an item sold once a week has low confidence.
 
@@ -147,9 +147,9 @@ weights:  w1=0.40, w2=0.35, w3=0.25
 
 | Symbol | Name | Formula |
 |--------|------|---------|
-| **R** | Recency | `exp(−days_since_last_sale / 7)` — decays if item hasn't sold recently |
-| **F** | Frequency | `min(1,  sales_events_last_7d / 7)` — penalises items sold < once/day |
-| **K** | Consistency | `1 − (σ_daily / V)` — coefficient of variation; 0 = erratic, 1 = perfectly steady |
+| **R** | Recency | `exp(−days_since_last_sale / 7)` - decays if item hasn't sold recently |
+| **F** | Frequency | `min(1,  sales_events_last_7d / 7)` - penalises items sold < once/day |
+| **K** | Consistency | `1 − (σ_daily / V)` - coefficient of variation; 0 = erratic, 1 = perfectly steady |
 
 `σ_daily` is the standard deviation of `D[day]` over the last 14 days.
 
@@ -157,7 +157,7 @@ weights:  w1=0.40, w2=0.35, w3=0.25
 
 ---
 
-## 9. 7-Day Allocation — A₇
+## 9. 7-Day Allocation - A₇
 
 The allocation is the quantity the merchant should order **today** to satisfy the next 7 days of adjusted demand, after accounting for current stock:
 
@@ -179,7 +179,7 @@ Items with `A₇ = 0` (adequate stock) are omitted from the Suggested Reorder li
 
 ---
 
-## 10. Inventory Health Score — H
+## 10. Inventory Health Score - H
 
 The overall health of the inventory at a point in time:
 
@@ -205,12 +205,12 @@ POS Sale Events
                       ▼
 ┌─────────────────────────────────────────────┐
 │  EWMA Engine                                │
-│  V(t)        — smoothed velocity (α=0.30)  │
-│  V_recent    — fast EWMA (α=0.50, 4d)      │
-│  V_baseline  — slow EWMA (α=0.15, 14d)     │
-│  τ           — trend %                     │
-│  V_adj       — trend-adjusted velocity     │
-│  σ_daily     — daily demand std dev        │
+│  V(t)        - smoothed velocity (α=0.30)  │
+│  V_recent    - fast EWMA (α=0.50, 4d)      │
+│  V_baseline  - slow EWMA (α=0.15, 14d)     │
+│  τ           - trend %                     │
+│  V_adj       - trend-adjusted velocity     │
+│  σ_daily     - daily demand std dev        │
 └─────────────────────┬───────────────────────┘
                       │
                       ▼
@@ -230,9 +230,9 @@ POS Sale Events
                       ▼
 ┌─────────────────────────────────────────────┐
 │  Classifier & Allocator                     │
-│  status  — CRITICAL / LOW / HEALTHY        │
-│  A₇      — 7-day allocation with buffer    │
-│  H       — inventory health score          │
+│  status  - CRITICAL / LOW / HEALTHY        │
+│  A₇      - 7-day allocation with buffer    │
+│  H       - inventory health score          │
 └─────────────────────┬───────────────────────┘
                       │
                       ▼
@@ -254,7 +254,7 @@ Insights are generated by scanning items for notable signal patterns:
 
 | Pattern | Threshold | Example insight |
 |---------|-----------|-----------------|
-| Demand spike | `τ > 30%` AND status CRITICAL | "Onions selling 42% faster — festival demand detected" |
+| Demand spike | `τ > 30%` AND status CRITICAL | "Onions selling 42% faster - festival demand detected" |
 | Imminent stockout | `D_out < 1.0` | "Milk runs out in ~18 hrs" |
 | Stable high-mover | `V > 2.0` AND status HEALTHY | "Rice demand stable at 2.1 kg/day" |
 | Cross-item correlation | Items bought together > 60% of transactions | "Tomatoes + Onions + Potatoes co-purchased 68% of the time" |
@@ -270,13 +270,13 @@ In production these would be generated by a server-side job querying the sales d
 | EWMA smoothing | α | 0.30 | Faster velocity response, more noise |
 | Recent trend window | α_r | 0.50 | More reactive trend |
 | Baseline trend window | α_b | 0.15 | Slower baseline drift |
-| Critical threshold (days) | — | 1.0 d | More items flagged critical |
-| Low threshold (days) | — | 3.0 d | More items flagged low |
-| Critical stock % | — | 15% | — |
-| Low stock % | — | 30% | — |
-| Safety buffer (CRITICAL) | — | 40% | Larger reorder suggestions |
-| Safety buffer (LOW) | — | 25% | — |
-| Safety buffer (HEALTHY) | — | 15% | — |
+| Critical threshold (days) | - | 1.0 d | More items flagged critical |
+| Low threshold (days) | - | 3.0 d | More items flagged low |
+| Critical stock % | - | 15% | - |
+| Low stock % | - | 30% | - |
+| Safety buffer (CRITICAL) | - | 40% | Larger reorder suggestions |
+| Safety buffer (LOW) | - | 25% | - |
+| Safety buffer (HEALTHY) | - | 15% | - |
 | Confidence weights | w1/w2/w3 | 0.40/0.35/0.25 | Shifts C sensitivity |
 
 ---

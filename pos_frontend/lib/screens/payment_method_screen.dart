@@ -114,7 +114,7 @@ class PaymentMethodScreen extends StatelessWidget {
           method: PaymentMethod.qr,
           icon: Icons.qr_code_2,
           title: 'QR Code',
-          subtitle: 'Show QR — customer scans & pays',
+          subtitle: 'Show QR - customer scans & pays',
           color: const Color(0xFF00897B),
           badge: 'POPULAR',
         ),

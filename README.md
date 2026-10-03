@@ -1,6 +1,6 @@
-# Vyaapari — Digital Kirana Storefront
+# Vyaapari - Digital Kirana Storefront
 
-A mini app built on top of Paytm POS that turns any kirana (local grocery) store into a digitally-managed business — with voice-powered billing, an AI-driven inventory engine, and a customer-facing storefront, all within the Paytm ecosystem.
+A mini app built on top of Paytm POS that turns any kirana (local grocery) store into a digitally-managed business - with voice-powered billing, an AI-driven inventory engine, and a customer-facing storefront, all within the Paytm ecosystem.
 
 ---
 
@@ -45,12 +45,12 @@ The `pos_frontend` simulates the Paytm POS interface. From within it, the mercha
 
 ### Kirana Store Screen
 - Full digital product catalog with emoji tiles, prices, and units
-- Cart management — add, remove, adjust quantities
+- Cart management - add, remove, adjust quantities
 - Cart sheet with itemised bill summary and total
 
 ### Voice Cart (Sarvam AI)
 - Tap the mic icon to open a Siri-style listening sheet with live waveform animation
-- Speak in **Hindi, Hinglish, Marathi, or English** — e.g. *"ek kilo pyaaz aur do packet bread"*
+- Speak in **Hindi, Hinglish, Marathi, or English** - e.g. *"ek kilo pyaaz aur do packet bread"*
 - Sarvam `saaras:v4` transcribes the audio; `sarvam-105b` extracts structured items
 - Parsed cart preview shows catalog-matched items with emoji, price, and quantity before adding
 - Falls back to "Could not parse your list" with a Try Again button if no catalog match is found
@@ -61,18 +61,18 @@ The `pos_frontend` simulates the Paytm POS interface. From within it, the mercha
 - Payment processing screen with animated waiting state
 - Receipt screen with itemised bill, store address, and total
 
-### ICE — Inventory Confidence Engine
-An AI-modelled inventory layer that infers stock levels and demand velocity purely from POS sales — no manual stock counting required.
+### ICE - Inventory Confidence Engine
+An AI-modelled inventory layer that infers stock levels and demand velocity purely from POS sales - no manual stock counting required.
 
-- **Health Score** — percentage of items in healthy stock status
-- **Velocity** — EWMA-smoothed daily demand per item
-- **Trend** — relative acceleration vs. 2-week baseline
-- **Stock Estimation** — inferred from last anchor + cumulative sales
-- **Confidence Score** — composite of recency, frequency, and consistency
-- **Status Classification** — Critical / Low / Healthy
-- **Calculated Allocations** — 7-day forward reorder quantities with safety buffers
-- **AI Insights** — anomaly cards (demand spikes, imminent stockouts, co-purchase patterns)
-- **Suggested Reorder** — itemised reorder list with total cost and supplier dispatch button
+- **Health Score** - percentage of items in healthy stock status
+- **Velocity** - EWMA-smoothed daily demand per item
+- **Trend** - relative acceleration vs. 2-week baseline
+- **Stock Estimation** - inferred from last anchor + cumulative sales
+- **Confidence Score** - composite of recency, frequency, and consistency
+- **Status Classification** - Critical / Low / Healthy
+- **Calculated Allocations** - 7-day forward reorder quantities with safety buffers
+- **AI Insights** - anomaly cards (demand spikes, imminent stockouts, co-purchase patterns)
+- **Suggested Reorder** - itemised reorder list with total cost and supplier dispatch button
 
 See [ICE Formulation](./ice-formulation.md) for the complete formulae, pipeline, and tuning parameters.
 
@@ -82,7 +82,7 @@ See [ICE Formulation](./ice-formulation.md) for the complete formulae, pipeline,
 
 ```
 paytm-hack/
-├── pos_frontend/           Flutter — Paytm POS mock + merchant mini app
+├── pos_frontend/           Flutter - Paytm POS mock + merchant mini app
 │   ├── lib/
 │   │   ├── screens/
 │   │   │   ├── pos_home_screen.dart       Dashboard (Sales / Invoices / Products / ICE tabs)
@@ -101,7 +101,7 @@ paytm-hack/
 │   └── android/
 │       └── app/build.gradle.kts           compileSdk = 37
 │
-├── backend/                FastAPI — voice cart parsing
+├── backend/                FastAPI - voice cart parsing
 │   ├── main.py
 │   └── app/
 │       ├── api/voice_cart.py              POST /voice-cart
@@ -145,7 +145,7 @@ flutter pub get
 flutter run
 ```
 
-**Android device — connect backend:**
+**Android device - connect backend:**
 ```bash
 adb reverse tcp:8000 tcp:8000
 ```
@@ -187,7 +187,7 @@ audio: <WAV file>  (16 kHz, mono recommended)
 
 ---
 
-## ICE — Inventory Confidence Engine
+## ICE - Inventory Confidence Engine
 
 ICE infers inventory health from POS sales data alone, without manual stock counts.
 

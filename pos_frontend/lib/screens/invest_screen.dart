@@ -751,7 +751,7 @@ class _InvestScreenState extends State<InvestScreen> {
 
   Widget _buildWhyGold() {
     const points = [
-      ('🔒', 'Starts at ₹1', 'No minimum — add to your stack daily'),
+      ('🔒', 'Starts at ₹1', 'No minimum - add to your stack daily'),
       ('📈', '11% avg annual growth', 'Outperformed FD every year since 2019'),
       ('⚡', 'Sell anytime', 'Instant redemption, no lock-in period'),
       ('✅', '99.9% pure, insured', 'Stored in Brinks vault, MMTC-PAMP certified'),

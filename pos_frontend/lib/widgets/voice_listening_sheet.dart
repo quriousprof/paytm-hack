@@ -303,7 +303,7 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
           ),
           const SizedBox(height: 10),
 
-          // Matched items — cart-sheet row style
+          // Matched items - cart-sheet row style
           Container(
             decoration: BoxDecoration(
               border: Border.all(color: const Color(0xFFEEEEEE)),
@@ -326,7 +326,7 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
           const SizedBox(height: 12),
           _billSummary(matched.length, total),
 
-          // Unmatched items — dimmed
+          // Unmatched items - dimmed
           if (unmatched.isNotEmpty) ...[
             const SizedBox(height: 12),
             _sectionLabel('Not in catalog'),
@@ -465,7 +465,7 @@ class _VoiceListeningSheetState extends State<VoiceListeningSheet>
                   ),
                 ),
                 Text(
-                  'Not found — add manually',
+                  'Not found - add manually',
                   style: TextStyle(fontSize: 11, color: Colors.grey[400]),
                 ),
               ],

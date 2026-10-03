@@ -158,7 +158,7 @@ const _kInsights = <_Insight>[
     color: _kCritical,
     bgColor: Color(0xFFFFEBEE),
     title: 'Onions selling 42% faster',
-    body: 'Spike detected over last 4 days — likely festival demand. Reorder 15 kg today to avoid stockout.',
+    body: 'Spike detected over last 4 days - likely festival demand. Reorder 15 kg today to avoid stockout.',
   ),
   _Insight(
     icon: Icons.access_time_rounded,
@@ -205,7 +205,7 @@ class IceScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'ICE — Inventory Engine',
+          'ICE - Inventory Engine',
           style: TextStyle(
               color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600),
         ),
