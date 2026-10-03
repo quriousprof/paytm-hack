@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'cart_sheet.dart';
+import 'payment_method_screen.dart';
 
 const _kBlue = Color(0xFF002970);
 
@@ -56,6 +58,37 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
           _cart[id] = _cart[id]! - 1;
         }
       });
+
+  List<CartItem> get _cartItems => _kProducts
+      .where((p) => _cart.containsKey(p.id))
+      .map((p) => CartItem(
+            name: p.name,
+            emoji: p.emoji,
+            price: p.price,
+            qty: _cart[p.id]!,
+          ))
+      .toList();
+
+  void _showCart() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CartSheet(
+        items: _cartItems,
+        onMoveToPOS: () {
+          Navigator.pop(context); // close the sheet
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  PaymentMethodScreen(amount: _cartTotal + 5),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -374,9 +407,7 @@ class _KiranaStoreScreenState extends State<KiranaStoreScreen> {
         width: double.infinity,
         height: 52,
         child: ElevatedButton(
-          onPressed: () {
-            // TODO: open cart sheet
-          },
+          onPressed: _showCart,
           style: ElevatedButton.styleFrom(
             backgroundColor: _kBlue,
             shape: RoundedRectangleBorder(
