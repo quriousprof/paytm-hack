@@ -240,22 +240,6 @@ class _PosHomeScreenState extends State<PosHomeScreen> {
           const SizedBox(height: 6),
           Image.asset('assets/paytm-logo.jpg',
               width: 140, fit: BoxFit.contain),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (i) {
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: i == 0 ? 20 : 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: i == 0 ? _kBlue : Colors.grey[300],
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              );
-            }),
-          ),
         ],
       ),
     );
