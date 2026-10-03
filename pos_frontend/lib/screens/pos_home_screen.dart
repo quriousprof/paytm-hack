@@ -257,7 +257,7 @@ class _PosHomeScreenState extends State<PosHomeScreen>
               padding: const EdgeInsets.symmetric(vertical: 20),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF0C8A4E), Color(0xFF1DB868)],
+                  colors: [Color(0xFF002970), Color(0xFF1A56DB)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -294,7 +294,7 @@ class _PosHomeScreenState extends State<PosHomeScreen>
                 child: Column(
                   children: [
                     _kiranaStatRow("Today's Sales", '₹4,230',
-                        color: const Color(0xFF0C8A4E)),
+                        color: const Color(0xFF1A56DB)),
                     const Divider(height: 14, color: Color(0xFFEEEEEE)),
                     _kiranaStatRow('Items Sold', '47'),
                     const Divider(height: 14, color: Color(0xFFEEEEEE)),
