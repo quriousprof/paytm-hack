@@ -211,7 +211,7 @@ class ReceiptScreen extends StatelessWidget {
         : [
             CartItem(
               name: 'Custom Charge',
-              emoji: '💰',
+              emoji: '',
               unit: 'item',
               price: total,
               qty: 1,
@@ -276,7 +276,7 @@ class ReceiptScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${item.emoji}  ${item.name}',
+                  item.name,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -415,7 +415,7 @@ class ReceiptScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Visit again  🙏',
+            'Visit again!',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: Colors.grey[500]),
           ),
